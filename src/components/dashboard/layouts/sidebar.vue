@@ -2,7 +2,7 @@
   <div class="d-flex align-items-stretch">
     <div
       class="sidebar py-3"
-      :class="{ 'shrink show': props.toggled }"
+      :class="{ 'shrink show': store.menuShrink }"
       id="sidebar"
     >
       <div
@@ -84,7 +84,7 @@
                   active: currentRoute.includes('/customize/components'),
                 }"
               >
-                <i class="fa fa-book me-3"></i>
+                <i class="fa fa-book"></i>
                 <span class="sidebar-link-title"> Components</span>
               </router-link>
             </li>
@@ -120,7 +120,7 @@
                   active: currentRoute.includes('/customize/social-links'),
                 }"
               >
-                <i class="fa fa-bookmark me-3"></i>
+                <i class="fa fa-bookmark"></i>
                 <span class="sidebar-link-title">Social Links</span>
               </router-link>
             </li>
@@ -132,8 +132,20 @@
                   active: currentRoute.includes('/customize/menus'),
                 }"
               >
-                <i class="fa fa-font" aria-hidden="true"></i>
+                <i class="fa fa-list-ul" aria-hidden="true"></i>
                 <span class="sidebar-link-title">Site Menus</span>
+              </router-link>
+            </li>
+            <li class="sidebar-list-item">
+              <router-link
+                :to="{ name: 'rearrangePage' }"
+                class="sidebar-link text-muted"
+                :class="{
+                  active: currentRoute.includes('/customize/rearrange'),
+                }"
+              >
+                <i class="fa fa-arrows"></i>
+                <span class="sidebar-link-title">Rearrange</span>
               </router-link>
             </li>
           </ul>
@@ -149,15 +161,7 @@
       <div class="Regenerate" v-else>
         <form class="text-start mb-2 mt-3">
           <div class="form-field mb-4">
-            <button
-              class="btn btn-outline-danger btn-danger"
-              type="button"
-              id="button-addon3"
-              data-toggle="modal"
-              data-target="#myform"
-            >
-              <i class="fa fa-retweet" aria-hidden="true"></i> Regenerate
-            </button>
+            <button class="btn btn-outline-danger btn-danger " type="button" id="button-addon3" data-toggle="modal" data-target="#myform"><i class="fa fa-retweet" aria-hidden="true"></i><span> Regenerate</span></button>
           </div>
         </form>
       </div>

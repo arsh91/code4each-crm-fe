@@ -9,6 +9,7 @@ import CustomizeColors from '../views/CustomizeWebsiteColors.vue'
 import SiteSettings from '../views/SiteSettings.vue'
 import CustomizeWebsiteFonts from '../views/CustomizeWebsiteFonts.vue'
 import CustomizeSocialLinks from '../views/CustomizeSocialLinks.vue'
+import CustomizeRearrange from '../views/CustomizeRearrange.vue'
 import RessetPassword from "@/components/forget_password/RessetPassword.vue";
 
 const router = createRouter({
@@ -86,6 +87,11 @@ const router = createRouter({
       path: '/customize/menus',
       name: 'menusPage',
       component: MenusView
+    },
+    {
+      path: '/customize/rearrange',
+      name: 'rearrangePage',
+      component: CustomizeRearrange
     },
   ]
 });

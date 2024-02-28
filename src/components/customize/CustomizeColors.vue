@@ -304,6 +304,11 @@ const activateColorSet = (id, setIndex) => {
             >
               <i class="fa fa-upload" aria-hidden="true"></i> Publish
             </button>
+            <div class="three-bodyc" v-if="btnDisable">
+                        <div class="three-body__dot"></div>
+                        <div class="three-body__dot"></div>
+                        <div class="three-body__dot"></div>
+                </div>
           </div>
         </div>
       </div>

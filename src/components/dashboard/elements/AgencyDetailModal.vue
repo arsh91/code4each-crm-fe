@@ -132,7 +132,7 @@ const setFormValues = () => {
   values.value.businessName = allDashboardData.value?.user?.agency?.name;
   values.value.phone = allDashboardData.value?.user?.phone;
   values.value.businessCategory = "";
-  values.value.country = "india";
+  values.value.country = "India";
 };
 onMounted(() => {
   allDashboardData.value = props.dashboardData;
@@ -178,6 +178,7 @@ const nextStep = async (step = false) => {
     allErrors.value = errors;
   }
 };
+
 
 const onFileChange = (event) => {
   values.value.logo = event.target.files[0];

@@ -686,6 +686,11 @@ const regenerateWebsite = async () => {
                           <i class="fa fa-upload" aria-hidden="true"></i>
                           Publish
                         </button>
+                        <div class="three-bodyc" v-if="btnDisable">
+                        <div class="three-body__dot"></div>
+                        <div class="three-body__dot"></div>
+                        <div class="three-body__dot"></div>
+                      </div>
                       </div>
                     </div>
                   </div>
@@ -813,31 +818,20 @@ const regenerateWebsite = async () => {
                     </div>
 
                     <div class="button-wrapper">
-                      <!-- <button
-                        type="submit"
-                        class="preview-btn"
-                        @click="
-                          openLinkInNewTab(siteSettingsDeatil.website_domain)
-                        "
-                      >
-                        Preview
-                      </button> -->
-                      <!-- <button
-                        type="submit"
-                        class="publish-btn"
-                        @click="changeComponent"
-                      >
-                        Publish
-                        <AnimationLoader v-if="btnDisable" />
-                      </button> -->
                       <button
                         type="submit"
                         class="preview-btn"
                         @click="changeComponent"
+                        :disabled="btnDisable"
                       >
                         <i class="fa fa-upload" aria-hidden="true"></i>
                         Publish
                       </button>
+                      <div class="three-bodyc" v-if="btnDisable">
+                        <div class="three-body__dot"></div>
+                        <div class="three-body__dot"></div>
+                        <div class="three-body__dot"></div>
+                      </div>
                     </div>
                   </div>
                 </div>

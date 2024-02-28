@@ -3,7 +3,15 @@ import NavBar from "@/components/dashboard/layouts/navbar.vue";
 import SideBar from "@/components/dashboard/layouts/sidebar.vue";
 import { useAuth } from "@/service/useAuth";
 import { useRouter } from "vue-router";
-import { ref, defineProps, onMounted, provide, inject, watch } from "vue";
+import {
+  ref,
+  defineProps,
+  onMounted,
+  provide,
+  inject,
+  watch,
+  computed,
+} from "vue";
 import WordpressService from "@/service/WordpressService";
 import Modal from "@/components/common/Modal.vue";
 import Swal from "sweetalert2";
@@ -11,21 +19,25 @@ import EditSiteSettingsFormBuilder from "@/components/common/EditSiteSettingsFor
 import EditSiteSettingsButtonFormBuilder from "@/components/common/EditSiteSettingsButtonFormBuilder.vue";
 import { useStore } from "@/stores/store";
 import { capitalizeAndReplaceChar } from "@/util/helper";
-import { VueDraggableNext } from "vue-draggable-next";
 import config from "/config";
 import { openLinkInNewTab } from "@/util/helper";
 import { EventBus } from "@/EventBus";
 import DeleteModal from "@/components/common/DeleteModal.vue";
 import ConfirmModal from "@/components/common/ConfirmModal.vue";
+import ConfirmUiModal from "@/components/common/ConfirmUiModal.vue";
 import ProcessCompleteModal from "@/components/common/ProcessCompleteModal.vue";
 import AnimationLoader from "@/components/common/AnimationLoader.vue";
 import Loader from "@/components/common/Loader.vue";
+import { VueDraggableNext } from "vue-draggable-next";
+import { useForm } from "vee-validate";
+import * as yup from "yup";
 import FlashMessage from "@/components/common/FlashMessage.vue";
 
 const router = useRouter();
 const { logout } = useAuth();
 const isSidebarToggled = ref(true);
 const activeComponentsDetail = ref([]);
+const activeComponentsDetailShow = ref([]);
 const allComponentsDetailAccToType = ref();
 const selectedImage = ref();
 const store = useStore();
@@ -41,68 +53,64 @@ const errors = ref([]);
 const dashboardData = ref([]);
 const userData = ref([]);
 const showModal = ref(false);
-const loadingForComonents = ref(true);
+const loadingForComonents = ref(false);
 const oldComponent = ref();
 const newComponent = ref();
 const showEditComponentFieldModal = ref(false);
 const siteSettingsFormFields = ref([]);
 const siteSettingsDeatil = ref();
-const componentsFieldsUnderEdit = ref({
-  id: null,
-  type: null,
-});
+const menuUnderDelete = ref(null);
 const saveComponentPositionBtn = ref(false);
 const enabled = ref(true);
-const disableDragDrop = ref(true);
 const itemDraggingStates = ref({});
-const showEditMupltipleImagesModal = ref(false);
-const uploadedFiles = ref([]);
-const disableImageSubmitButton = ref();
-const fileInput = ref(null);
-const componentImagesAcctoType = ref();
-const selectedComponentPreviewImgSrc = ref();
-const btnDisable = ref(false);
-const currentTab = ref("image");
-const selectedDeletedImageUrl = ref(null);
-const newActiveFontId = ref(null);
 
-const defaultUrls = ref();
-const socialLinksData = ref({
-  whatsApp: "",
-  facebook: "",
-  youTube: "",
-  instagram: "",
-  twitter: "",
-  linkedIn: "",
-  pinterest: "",
-  telegram: "",
-  shareChat: "",
-});
+const onEndComponentPosition = (evt) => {
+  saveComponentPositionBtn.value = true;
 
-const socialLinkIconPath = ref({
-  whatsApp: "/images/social.png",
-  facebook: "/images/facebook.png",
-  youTube: "/images/youtube.png",
-  instagram: "/images/instagram.png",
-  twitter: "/images/twitter.png",
-  linkedIn: "/images/linkedin.png",
-  pinterest: "/images/pinterest.png",
-  telegram: "/images/telegram.png",
-  shareChat: "/images/icons8-sharechat-480.png",
-});
+};
 
+const onStartComponentPosition = (evt) => {
+  saveComponentPositionBtn.value = false;
+};
+
+const saveComponentPosition = async () => {
+  try {
+    loadingForComonents.value = true;
+    saveComponentPositionBtn.value = false;
+    const response = await WordpressService.Components.changeComponentPosition({
+      updated_positions: storeComponentsPosition.value,
+      website_url: siteSettingsDeatil.value?.website_domain,
+    });
+    if (response.status === 200 && response.data.success) {
+      store.updateFlashMeassge(true, "Position Saved Sucessfully");
+      getActiveComponentsData();
+    }
+  } catch (error) {
+    console.error("An error occurred:", error);
+  }
+  loadingForComonents.value = false;
+};
+
+const updateItemPositions = () => {
+  storeComponentsPosition.value = activeComponentsDetail.value.map(
+    (compo, index) => ({
+      component_unique_id: compo.id,
+      position: index + 1,
+    })
+  );
+};
+
+watch(() => activeComponentsDetail.value, updateItemPositions, { deep: true });
 const fetchDashboardData = async () => {
   try {
     const response = await WordpressService.fetchDashboardData();
     if (response.status === 200 && response.data.success) {
-      // loading.value = false;
       dashboardData.value = response.data;
     }
   } catch (error) {
     if (error.response && error.response.status === 401) {
       console.error("Authentication failed. Please log in.", error);
       error.value = true;
-      // loading.value = false;
       localStorage.removeItem("access_token");
       router.push("/login");
     } else {
@@ -110,6 +118,7 @@ const fetchDashboardData = async () => {
     }
   }
 };
+
 
 const getActiveComponentsData = async () => {
   try {
@@ -119,7 +128,7 @@ const getActiveComponentsData = async () => {
 
     if (response.status === 200 && response.data.success) {
       activeComponentsDetail.value = response.data.components_detail;
-      let firstActiveComponent = activeComponentsDetail.value[0];
+      activeComponentsDetailShow.value = response.data.components_detail;
       activeComponentsDetail.value.forEach((image) => {
         activeComponentsDetail.dragging = false;
       });
@@ -132,27 +141,10 @@ const getActiveComponentsData = async () => {
   }
 };
 
-const saveSocialLinks = async (data) => {
-  try {
-    const response = await WordpressService.SocialLinks.postSocialLinks({
-      website_url: siteSettingsDeatil.value?.website_domain,
-      social_links: data,
-    });
-    if (response.status === 200) {
-      store.updateFlashMeassge(true, "Social Link Saved Sucessfully");
-      await getsocialLinks();
-    }
-  } catch (error) {
-    console.error("An error occurred:", error);
-  }
-  // btnDisable.value = false;
-};
-
 onMounted(async () => {
   await getSiteDeatils();
   await fetchDashboardData();
   await getActiveComponentsData();
-  await getsocialLinks();
   loading.value = false;
 });
 
@@ -162,7 +154,7 @@ watch(
     await getSiteDeatils();
     await fetchDashboardData();
     await getActiveComponentsData();
-    await getsocialLinks();
+
     loading.value = false;
   }
 );
@@ -193,43 +185,12 @@ const regenerateWebsite = async () => {
     });
     await getSiteDeatils();
     await fetchDashboardData();
-    await getActiveComponentsData();
+    await getMenus();
   } catch (error) {
     console.log(error);
     console.error("Error Occur while regenerating website", error);
   }
   loading.value = false;
-};
-
-const getsocialLinks = async () => {
-  try {
-    const response = await WordpressService.SocialLinks.getSocialLinks({
-      website_url: siteSettingsDeatil.value?.website_domain,
-    });
-    if (response.status === 200 && response.data.success) {
-      let socialLinks = response.data.social_links;
-
-      if (Object.keys(socialLinks).length > 0) {
-        socialLinksData.value = updateValues(socialLinks);
-      }
-    }
-  } catch (error) {}
-};
-
-function updateValues(socialLinks) {
-  const updatedData = Object.keys(socialLinksData.value).map((key) => {
-    if (socialLinks.hasOwnProperty(key)) {
-      return { [key]: socialLinks[key] };
-    }
-    return { [key]: socialLinksData[key] };
-  });
-  return Object.assign({}, ...updatedData);
-}
-const saveLinkValue = async (key) => {
-  const linkValue = socialLinksData.value[key];
-  await saveSocialLinks({
-    [key]: linkValue,
-  });
 };
 </script>
 
@@ -256,7 +217,7 @@ const saveLinkValue = async (key) => {
               data-target="#exampleModalRight-components"
             >
               <div
-                v-for="(compValue, index) in activeComponentsDetail"
+                v-for="(compValue, index) in activeComponentsDetailShow"
                 :key="index"
               >
                 <div class="eidtor-img">
@@ -268,7 +229,6 @@ const saveLinkValue = async (key) => {
         </div>
       </div>
     </section>
-
     <div class="right-side">
       <div class="sidebar-right py-3" id="sidebar-right">
         <header
@@ -276,49 +236,63 @@ const saveLinkValue = async (key) => {
           class="panel-header panel-header-flex theme-standard without-stripe"
         >
           <div class="panel-header-title">
-            <span class="panel-header-title-span"> </span>
-            <img
+           <h5 class="panel-header-title-span">   Rearrange Components </h5>
+            <!--  <img
               src="/images/export.png"
               @click="openLinkInNewTab(siteSettingsDeatil.website_domain)"
-            />
+              style="cursor: pointer"
+            /> -->
+         
           </div>
         </header>
-        <hr />
 
         <div class="ifYqM">
-          <div
-            class="eidtor-sitefonts-1"
-            aria-hidden="true"
-            data-toggle="modal"
-            data-target="#exampleModalRight-components"
-          >
-            <h2>Which social-link do you want to show o your site?</h2>
-            <p class="text-center">
-              Choose the social-link you want show on your site. You can choose
-              it by adding link for social or you can remove it by empty the
-              link.
-            </p>
-            <div class="social-linksinputs">
-              <div v-for="(link, index) in socialLinksData" :key="index">
-                <label :for="index" class="form-field social-links mb-2"
-                  ><img :src="socialLinkIconPath[index]" />
-                  {{ index.charAt(0).toUpperCase() + index.slice(1) }}</label
+            <VueDraggableNext
+                  class="dragArea list-group w-full"
+                  :list="activeComponentsDetail"
+                  @end="onEndComponentPosition"
+                  @start="onStartComponentPosition"
+                  dragClass="dragItem"
+                  ghostClass="dropHere"
                 >
-                <input
-                  type="text"
-                  class="form-control input"
-                  :placeholder="index.charAt(0).toUpperCase() + index.slice(1)"
-                  @blur="saveLinkValue(index)"
-                  v-model="socialLinksData[index]"
-                />
-              </div>
-            </div>
+                  <div
+                    v-for="(compValue, index) in activeComponentsDetail"
+                    :key="index"
+                    class="image-container"
+                  >
+                    <img
+                      :src="config.CRM_API_URL + compValue.preview"
+                      alt="Dynamic"
+                      width="250"
+                      :class="{
+                        dragItem: compValue.dragging,
+                      }"
+                    />
+                  </div>
+                </VueDraggableNext>
+                  <div class="button-wrapper">
+                        <button
+                          type="submit"
+                          class="preview-btn"
+                          v-if="saveComponentPositionBtn"
+                          @click="saveComponentPosition"
+                          :disabled="loadingForComonents"
+                        >
+                          <i class="fa fa-upload" aria-hidden="true"></i>
+                          Publish
+                        </button>
+                      <div class="three-bodyc" v-if="loadingForComonents">
+                        <div class="three-body__dot"></div>
+                        <div class="three-body__dot"></div>
+                        <div class="three-body__dot"></div>
+                      </div>
+                    </div>
           </div>
-        </div>
       </div>
     </div>
   </div>
   <Loader v-if="loading" />
+
   <ConfirmModal
     modalTitle="Confirm!"
     modalText="Do you really want to regenrate This will regenrate your site"
@@ -331,6 +305,7 @@ const saveLinkValue = async (key) => {
     confirmText="Preview"
     @confirm="openLinkInNewTab(siteSettingsDeatil.website_domain)"
   />
+
 </template>
 <style>
 .image-container {
@@ -431,19 +406,20 @@ p {
 }
 
 .dragItem {
-  background-color: #f1f1f1; /* Background color */
-  border: 2px solid #666; /* Border style */
+  /* width: 250Px; */
+ /* Background color */
+  border: 2px solid #1d2b64; /* Border style */
   color: #333; /* Text color */
-  cursor: grab; /* Cursor style */
+  cursor:#1d2b64; /* Cursor style */
   opacity: 0.7; /* Opacity while dragging */
   transition: all 0.3s; /* Smooth transition */
 
   /* Additional styles as needed */
 }
 .dropHere {
-  background-color: #e1e1e1; /* Background color */
-  border: 2px dashed #666; /* Border style */
-  color: #555; /* Text color */
+  background: transparent;
+  border: 2px dashed #1d2b64; /* Border style */
+  color: #1d2b64; /* Text color */
   cursor: pointer; /* Cursor style */
 
   /* Additional styles as needed */
@@ -464,5 +440,68 @@ p {
 .upload_wrapper_inner_img_cont .upload__img-close {
   right: -10px;
   top: -10px;
+}
+.here-btn {
+  /* font-family: var(--font_cnikI10_default); */
+  font-size: 13px;
+  font-weight: 400;
+  color: #fff;
+  padding: 10px 10px;
+  z-index: 3;
+  background: #1d2b64;
+  border-color: #1d2b64;
+  transition: 0.3s;
+  border-radius: 8px;
+  box-shadow: none;
+  border: 1px solid #1d2b64;
+}
+
+button.btn.btn-primary.next-step {
+  color: #fff;
+  /* background-color: #23286e; */
+  border-color: #1d2b64;
+  padding: 10px 18px;
+  /* display: flex; */
+  float: inline-end;
+  background: #1d2b64;
+  border-radius: 8px;
+  margin-right: 16px;
+}
+
+.loaderDel {
+  left: 13%;
+}
+.dragArea.list-group.w-full {
+    padding-top: 0px;
+}
+.dragArea.list-group.w-full .image-container img {
+    width: 385px;
+    display: flex;
+    justify-content: center;
+    margin: 0px auto;
+    max-height: 190px;
+    /* max-height: 212px; */
+}
+.dragArea.list-group.w-full .image-container {
+    /* position: relative; */
+    display: flex;
+    margin: 0px 0px 0px;
+    /* width: 100%; */
+    justify-content: center;
+}
+.menus-div:hover {
+  cursor: all-scroll;
+}
+
+.sub-headingOne-btn:hover {
+  cursor: all-scroll;
+}
+
+.panel-header .panel-header-title .panel-header-title-span {
+    color: #1d2b64;
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    font-size: 20px;
 }
 </style>

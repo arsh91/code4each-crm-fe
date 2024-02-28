@@ -83,10 +83,6 @@ const store = useStore();
 const activeSite = ref();
 const isLoading = ref(Array(allSitesData.length).fill(false));
 
-const handleSelectChange = (selectedValue) => {
-  store.updateWebsiteId(selectedValue);
-};
-
 watch(
   () => props.allSitesData,
   (newFullPath, oldcurrentRouteFullPath) => {

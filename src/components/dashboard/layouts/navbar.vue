@@ -1,15 +1,17 @@
 <script setup>
 import { defineEmits, ref, defineProps, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useStore } from "@/stores/store";
+
 const router = useRouter();
 
 const emits = defineEmits();
 const isSidebarToggled = ref(true);
 const showUserMenu = ref(false);
+const store = useStore();
 
 const toggleSidebar = () => {
-  isSidebarToggled.value = !isSidebarToggled.value;
-  emits("nav-bar-toggle", isSidebarToggled.value);
+  store.updateShrink();
 };
 
 const logout = () => {
@@ -42,6 +44,12 @@ const props = defineProps({
         </span>
       </a>
       <ul class="ms-auto d-flex align-items-center list-unstyled mb-0">
+        <li class="nav-item  ">
+              <div class="panel-header-title1">
+                
+                <!-- <button type="submit" class="preview-btn"><i class="fa fa-eye" aria-hidden="true"></i> preview</button> -->
+              </div>
+            </li>
         <li class="nav-item dropdown">
           <div
             class="dropdown-menu dropdown-menu-animated text-sm"
