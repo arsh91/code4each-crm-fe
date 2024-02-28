@@ -101,6 +101,7 @@ const updateItemPositions = () => {
 };
 
 watch(() => activeComponentsDetail.value, updateItemPositions, { deep: true });
+
 const fetchDashboardData = async () => {
   try {
     const response = await WordpressService.fetchDashboardData();
@@ -128,7 +129,7 @@ const getActiveComponentsData = async () => {
 
     if (response.status === 200 && response.data.success) {
       activeComponentsDetail.value = response.data.components_detail;
-      activeComponentsDetailShow.value = response.data.components_detail;
+      activeComponentsDetailShow.value = JSON.parse(JSON.stringify(response.data.components_detail));
       activeComponentsDetail.value.forEach((image) => {
         activeComponentsDetail.dragging = false;
       });
