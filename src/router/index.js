@@ -11,26 +11,37 @@ import CustomizeWebsiteFonts from '../views/CustomizeWebsiteFonts.vue'
 import CustomizeSocialLinks from '../views/CustomizeSocialLinks.vue'
 import CustomizeRearrange from '../views/CustomizeRearrange.vue'
 import RessetPassword from "@/components/forget_password/RessetPassword.vue";
+import FrontLayout from "../views/layouts/Front.vue"
+import DashboardLayout from "../views/layouts/Dashboard.vue"
+import BlankLayout from "../views/layouts/Blank.vue"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: MyHomeView
+      name: 'Public',
+      component: FrontLayout,
+      redirect: '/',
+      children:[
+        {
+          path:'/',
+          name: 'Home',
+          component: MyHomeView
+        }
+      ]
     },
     {
       path: '/login',
       name: 'login',
       component: LoginView,
-      meta: { title: 'Login' }
+      meta: { title: 'Login', layout:FrontLayout }
     },
     {
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
-      meta: { requiresAuth: true, title: 'Dashboard' }
+      meta: { requiresAuth: true, title: 'Dashboard', layout:DashboardLayout }
     },
     {
       path: '/about',
@@ -46,6 +57,8 @@ const router = createRouter({
       path: '/reset-password',
       name: 'reset-password',
       component: RessetPassword,
+      meta: { title: 'Reset Password', layout:FrontLayout }
+
     },
     {
       path: '/customize/colors',

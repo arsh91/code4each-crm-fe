@@ -334,11 +334,6 @@ const activateFontSet = (id, setIndex) => {
   />
 </template>
 <style>
-.image-container {
-  position: relative;
-  display: inline-block;
-  margin: 10px;
-}
 
 .button-container {
   position: absolute;

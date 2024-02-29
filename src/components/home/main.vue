@@ -39,13 +39,8 @@ const backendError = ref("");
 const isForgetAction = ref(false);
 const ModalShowing = ref(false);
 const showSuccessMeassge = ref(false);
-const feedBackvalues = ref({});
-const feedbackModalShow = ref(false);
 const alertShow = ref(false);
-const feedbackMsg = ref(false);
-const feedBackloading = ref(false);
 const loginExist = ref(false);
-const allErrorsFeedback = ref({});
 const alertRef = ref(null);
 
 const showModal = (modal) => {
@@ -55,7 +50,6 @@ const showModal = (modal) => {
   if (modal === "forget") {
     loginModalShow.value =
       showSignUpModal.value =
-      feedbackModalShow.value =
       alertShow.value =
         false;
     forgetModalShow.value = true;
@@ -63,30 +57,23 @@ const showModal = (modal) => {
     loginModalShow.value = true;
     forgetModalShow.value =
       showSignUpModal.value =
-      feedbackModalShow.value =
-      alertShow.value =
-        false;
-  } else if (modal === "feedback") {
-    feedbackModalShow.value = true;
-    forgetModalShow.value =
-      showSignUpModal.value =
-      loginModalShow.value =
       alertShow.value =
         false;
   } else if (modal === "signup") {
     showSignUpModal.value = true;
     forgetModalShow.value =
-      feedbackModalShow.value =
       loginModalShow.value =
       alertShow.value =
         false;
   } else if (modal === "alert") {
     alertShow.value = true;
     forgetModalShow.value =
-      feedbackModalShow.value =
       loginModalShow.value =
       showSignUpModal.value =
         false;
+  } else if(modal === "feedback") {
+    // console.log('asdasf', modal)
+    store.updateFeedbackModalStore();
   }
 };
 
@@ -217,7 +204,6 @@ const login = handleSubmit(async () => {
 
 const hideModal = () => {
   ModalShowing.value = false;
-  feedbackModalShow.value = false;
   forgetModalShow.value = false;
   loginModalShow.value = false;
   showSignUpModal.value = false;
@@ -225,10 +211,8 @@ const hideModal = () => {
   allErrors.value = {};
   allErrorsLogin.value = {};
   allErrorsResset.value = {};
-  allErrorsFeedback.value = {};
   formData.value = {};
   formDataLogin.value = {};
-  feedBackvalues.value = {};
   formDataForget.value = {};
 };
 
@@ -317,57 +301,8 @@ const sendMailToVerifyEmail = handleSubmit(async () => {
   isForgetAction.value = false;
 });
 
-const validationSchemaFeedBack = yup.object({
-  message: yup.string().required("Message is a required field"),
-  name: yup.string().required("Name is a required field"),
-  email: yup
-    .string()
-    .email("Invalid email format")
-    .matches(
-      /^[^+]+@[^+]+\.[^+]+$/,
-      "Email address cannot contain the '+' character."
-    )
-    .required("Email is a required field"),
-  phone: yup
-    .string()
-    .required("Phone Number is a required field")
-    .matches(/^\d{10}$/, "Enter a valid 10-digit phone number"),
-});
 
-const submitFeedback = handleSubmit(async () => {
-  try {
-    feedBackloading.value = true;
-    let formValues = feedBackvalues.value;
-    await validationSchemaFeedBack.validate(feedBackvalues.value, {
-      abortEarly: false,
-    });
-    const formData = new FormData();
-    formData.append("type", "inquiry");
-    formData.append("title", "this is home page contact mail");
-    formData.append("email", formValues.email);
-    formData.append("phone", formValues.phone);
-    formData.append("name", formValues.name);
-    formData.append("message", formValues.message);
-    const response = await WordpressService.FeedBack.submitFeedback(formData);
-    if (response.status === 200 && response.data.success) {
-      allErrorsFeedback.value = {};
-      feedBackvalues.value = {};
-      feedbackMsg.value = true;
-      setTimeout(() => {
-        feedbackMsg.value = false;
-        hideModal();
-      }, 5000);
-    }
-  } catch (validationErrors) {
-    const errors = validationErrors.inner.reduce((acc, error) => {
-      acc[error.path] = error.message;
-      return acc;
-    }, {});
 
-    allErrorsFeedback.value = errors;
-  }
-  feedBackloading.value = false;
-});
 
 const navigate = () => {
   router.push("/dashboard");
@@ -779,112 +714,6 @@ const navigateToHome = () => {
     </div>
   </section>
 
-  <div class="footer-section">
-    <div class="container w-container">
-      <div class="subscription-wrapper">
-        <div class="subscription-text-side">
-          <h3 class="subscription-heading">
-            Questions? Feedback? Contact us for prompt assistance and support
-          </h3>
-        </div>
-        <div class="subscription-form-side">
-          <a
-            class="btn btn-lg button-trial rounded-pill hover-top"
-            @click="showModal('feedback')"
-            >CONTACT US
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </a>
-        </div>
-      </div>
-      <div class="footer-wrapper">
-        <div class="footer-single-block footer-logo-blojg">
-          <div class="footer-logo-block">
-            <img
-              src="/images/logo-beta.png"
-              loading="lazy"
-              alt="Footer Logo Image"
-              class="footer-logo-image"
-            />
-          </div>
-          <div class="footer-content">
-            <p class="footer-details">
-              Instant Websites, Zero Coding, Maximum Impact!
-            </p>
-            <!-- <div class="footer-copyright-text small-device-none">© <a  class="company-link">Brandbes.</a> All Rights Reserved - Privacy Policy </div> -->
-          </div>
-        </div>
-        <!-- <div class="footer-single-block">
-          <div class="footer-title-block">
-            <h3 class="footer-heading">
-              Address <span class="color-shape"></span>
-            </h3>
-          </div>
-          <div class="footer-link-block">
-            <div class="footer-center col-md-4 col-sm-6">
-              <div>
-                <i class="fa fa-map-marker"></i>
-                <p>
-                  <span>
-                    Plot No.1273, 3rd Floor, Sector 82, JLPL Industrial Area,
-                  </span>
-                  Sahibzada Ajit Singh, Punjab 160055
-                </p>
-              </div>
-              <div>
-                <i class="fa fa-phone"></i>
-                <p>+91 (797)363-0617</p>
-              </div>
-              <div>
-                <i class="fa fa-envelope"></i>
-                <p><a>hr@code4each.com</a></p>
-              </div>
-            </div>
-          </div>
-        </div> -->
-        <hr class="my-4" />
-        <div class="footer-single-block address-block">
-          <div class="footer-title-block">
-            <h3 class="footer-heading">
-              Social links <span class="color-shape"></span>
-            </h3>
-          </div>
-
-          <div class="footer-social-network-block">
-            <a
-              target="_blank"
-              :href="config.FACEBOOK_URL"
-              class="social-single-link w-inline-block"
-            >
-              <i class="fa fa-facebook-f"></i>
-            </a>
-            <a
-              :href="config.INSTAGRAM_URL"
-              target="_blank"
-              class="social-single-link w-inline-block"
-            >
-              <i class="fa fa-instagram"></i>
-            </a>
-            <a
-              :href="config.YOUTUBE_URL"
-              target="_blank"
-              class="social-single-link w-inline-block"
-            >
-              <i class="fa fa-youtube-play"></i>
-            </a>
-          </div>
-          <div class="footer-social-network-block"></div>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <div class="footer-bottom-text">
-          Speedysites.<a> All Rights Reserved - Privacy Policy </a>
-        </div>
-      </div>
-    </div>
-  </div>
   <div
     class="modal fade"
     id="exampleModal"
@@ -1046,7 +875,7 @@ const navigateToHome = () => {
       </div>
     </div>
   </div>
-  <div v-if="ModalShowing" class="modal-backdrop fade show"></div>
+  <!-- <div v-if="ModalShowing" class="modal-backdrop fade show"></div> -->
   <div
     class="modal fade"
     :class="{ show: loginModalShow, 'd-block': loginModalShow }"
@@ -1266,112 +1095,6 @@ const navigateToHome = () => {
     </div>
   </div>
 
-  <div
-    class="modal feedback-model fade"
-    id="modalContactForm"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="myModalLabel"
-    aria-hidden="true"
-    :class="{ show: feedbackModalShow, 'd-block': feedbackModalShow }"
-  >
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header" style="border: 0">
-          <button
-            type="button"
-            class="btn-close"
-            @click="hideModal"
-            aria-hidden="true"
-          ></button>
-        </div>
-        <div class="modal-body mx-3">
-          <div class="card-layout layout-medium">
-            <div class="content">
-              <div class="close-button"></div>
-
-              <h1 class="title">Contact Us</h1>
-              <label data-error="wrong" data-success="right" for="form34"
-                >Name*</label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="field1"
-                placeholder="Name"
-                v-model="feedBackvalues.name"
-              />
-              <div class="text-danger">{{ allErrorsFeedback.name }}</div>
-              <label data-error="wrong" data-success="right" for="form34"
-                >Email*</label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="field1"
-                placeholder="Email"
-                v-model="feedBackvalues.email"
-              />
-              <div class="text-danger">{{ allErrorsFeedback.email }}</div>
-              <label data-error="wrong" data-success="right" for="form34"
-                >Phone*</label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="field1"
-                placeholder="Phone"
-                v-model="feedBackvalues.phone"
-              />
-              <div class="text-danger">{{ allErrorsFeedback.phone }}</div>
-              <label data-error="wrong" data-success="right" for="form34"
-                >Message*</label
-              >
-              <textarea
-                class="form-control input"
-                placeholder="Write Your Message.."
-                rows="5"
-                v-model="feedBackvalues.message"
-              ></textarea>
-              <div class="text-danger">{{ allErrorsFeedback.message }}</div>
-              <div
-                v-if="feedbackMsg"
-                class="mt-3"
-                style="
-                  background-color: #dff0d8;
-                  color: #3c763d;
-                  padding: 10px;
-                  border: 1px solid #d6e9c6;
-                "
-              >
-                Thank you for reaching out! Your message has been successfully
-                submitted. We'll get back to you as soon as possible.
-              </div>
-              <div class="user-actions">
-                <div v-if="feedBackloading" class="three-body3">
-                  <div class="three-body__dot1"></div>
-                  <div class="three-body__dot1"></div>
-                  <div class="three-body__dot1"></div>
-                </div>
-                <button class="feedback-btn-primary" @click="submitFeedback">
-                  Send
-                </button>
-
-                <button
-                  class="feedback-btn-outline"
-                  data-dismiss="modal"
-                  aria-hidden="true"
-                  @click="hideModal"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div
     class="modal try-free alert-try-free-modal"

@@ -36,8 +36,13 @@ export const useStore = defineStore('myStore', {
         console.error("An error occurred:", error.message);
       }
     },
+    updateFeedbackModalStore(){
+      
+      this.showFeedbackModal = !this.showFeedbackModal;
+    },
   },
   setup() {
     this.fetchInitialWebsiteId();
   },
+  
 });
