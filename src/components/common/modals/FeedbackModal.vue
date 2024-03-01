@@ -126,16 +126,6 @@ import { useStore } from "@/stores/store";
 const store = useStore();
 const emits = defineEmits();
 
-// const props = defineProps({
-//   showFeedbackModal: {
-//       type:Boolean,
-//       default:false
-//     }
-// });
-
-// Create a ref to store the value of the prop
-// const myPropValue = ref(props.showFeedbackModal);
-
 // Watch for changes in props.myProp
 watch(() => store.showFeedbackModal, (newValue, oldValue) => {
   feedbackModalShow.value = newValue; // Update the value in the ref if needed

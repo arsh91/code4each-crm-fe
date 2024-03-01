@@ -16,10 +16,10 @@ import * as yup from "yup";
 import config from "/config";
 import { useStore } from "@/stores/store";
 import FlashMessage from "@/components/common/FlashMessage.vue";
+import AuthSignupModal from "@/components/common/modals/AuthSignupModal.vue";
 
 const store = useStore();
 const route = useRoute();
-const allErrors = ref({});
 const allErrorsLogin = ref({});
 const allErrorsForget = ref({});
 const allErrorsResset = ref({});
@@ -27,9 +27,7 @@ const formDataForget = ref({});
 const formDataResset = ref({});
 const router = useRouter();
 const { Errors, resetForm, handleSubmit } = useForm();
-const formData = ref({});
 const showSignUpModal = ref(false);
-const isDisabledSignUp = ref(false);
 const forgetModalShow = ref(false);
 const loginModalShow = ref(false);
 const loading = ref(false);
@@ -60,6 +58,7 @@ const showModal = (modal) => {
       alertShow.value =
         false;
   } else if (modal === "signup") {
+    console.log('sdfdsfs', modal);
     showSignUpModal.value = true;
     forgetModalShow.value =
       loginModalShow.value =
@@ -77,27 +76,7 @@ const showModal = (modal) => {
   }
 };
 
-const validationSchema = yup.object({
-  company_name: yup.string().required("Please enter your company name."),
-  name: yup.string().required("Please enter your name."),
-  email: yup
-    .string()
-    .email("Please enter a valid email address.")
-    .matches(
-      /^[^+]+@[^+]+\.[^+]+$/,
-      "Email address cannot contain the '+' character."
-    )
-    .required("Please enter your email address."),
-  password: yup
-    .string()
-    .min(6, "Password must be at least 6 characters.")
-    .max(20, "Password must not exceed 20 characters.")
-    .required("Please enter your password."),
-  phone: yup
-    .string()
-    .required("Please enter your phone number.")
-    .matches(/^\d{10}$/, "Enter a valid 10-digit phone number."),
-});
+
 
 const validationSchemaLogin = yup.object({
   email: yup
@@ -115,45 +94,7 @@ const validationSchemaLogin = yup.object({
     .required("Please enter your password."),
 });
 
-const registerUser = handleSubmit(async () => {
-  try {
-    isDisabledSignUp.value = true;
-    loading.value = true;
-    await validationSchema.validate(formData.value, { abortEarly: false });
-    allErrors.value = {};
 
-    const response = await WordpressService.registerUser(formData.value);
-    if (response.status === 200 && response.data.success) {
-      const token = response.data.token;
-      localStorage.setItem("access_token", token);
-      hideModal();
-      loading.value = false;
-      router.push("/dashboard");
-    }
-  } catch (error) {
-    const errors =
-      error.inner && Array.isArray(error.inner)
-        ? error.inner.reduce((acc, err) => {
-            acc[err.path] = err.message;
-            return acc;
-          }, {})
-        : {};
-
-    allErrors.value = errors;
-    if (error.response && error.response.data && error.response.data.errors) {
-      allErrors.value = Object.fromEntries(
-        Object.entries(error.response.data.errors).map(([key, value]) => [
-          key,
-          Array.isArray(value) ? value[0] : value,
-        ])
-      );
-    } else {
-      backendError.value = error?.response?.data?.message;
-    }
-  }
-  isDisabledSignUp.value = false;
-  loading.value = false;
-});
 
 const login = handleSubmit(async () => {
   try {
@@ -206,12 +147,9 @@ const hideModal = () => {
   ModalShowing.value = false;
   forgetModalShow.value = false;
   loginModalShow.value = false;
-  showSignUpModal.value = false;
   alertShow.value = false;
-  allErrors.value = {};
   allErrorsLogin.value = {};
   allErrorsResset.value = {};
-  formData.value = {};
   formDataLogin.value = {};
   formDataForget.value = {};
 };
@@ -714,284 +652,10 @@ const navigateToHome = () => {
     </div>
   </section>
 
-  <div
-    class="modal fade"
-    id="exampleModal"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="exampleModalLabel"
-    aria-hidden="true"
-    :class="{ show: showSignUpModal, 'd-block': showSignUpModal }"
-  >
-    <div class="modal-dialog popup-model" role="document">
-      <div class="modal-content">
-        <div class="modal-body">
-          <div class="column" id="main">
-            <button
-              type="button"
-              class="btn-close"
-              @click="hideModal"
-              aria-label="Close"
-            >
-              <i class="fa fa-times"></i>
-            </button>
+  <AuthSignupModal :showSignUpModal="showSignUpModal" @closeModal="showSignUpModal=false" ></AuthSignupModal>
 
-            <h1>Start Your 7 Day Free Trial Today!</h1>
-
-            <form class="form-start">
-              <div class="main-form">
-                <div class="form-group">
-                  <label for="exampleInputName">Company Name</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="exampleInputName"
-                    placeholder="Company  Name"
-                    v-model="formData.company_name"
-                  />
-                  <div class="text-danger">{{ allErrors.company_name }}</div>
-                </div>
-
-                <div class="form-group">
-                  <label for="exampleInputName">Name</label>
-                  <input
-                    type="name"
-                    class="form-control"
-                    id="exampleInputName"
-                    placeholder="Name"
-                    v-model="formData.name"
-                  />
-                  <div class="text-danger">{{ allErrors.name }}</div>
-                </div>
-              </div>
-              <div class="main-form">
-                <div class="form-group">
-                  <label for="exampleInputEmail1">Email </label>
-                  <input
-                    type="email"
-                    class="form-control"
-                    id="exampleInputEmail1"
-                    aria-describedby="emailHelp"
-                    placeholder="Email"
-                    v-model="formData.email"
-                  />
-                  <div class="text-danger">{{ allErrors.email }}</div>
-                </div>
-                <div class="form-group">
-                  <label for="exampleInputPassword1">Phone no.</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="exampleInputPassword1"
-                    placeholder="Phone Number..."
-                    v-model="formData.phone"
-                  />
-                  <div class="text-danger">{{ allErrors.phone }}</div>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="exampleInputPassword1">Password</label>
-                <input
-                  type="password"
-                  class="form-control"
-                  id="exampleInputPassword1"
-                  placeholder="Password"
-                  v-model="formData.password"
-                />
-                <div class="text-danger">{{ allErrors.password }}</div>
-              </div>
-              <div class="text-danger">{{ backendError }}</div>
-              <div class="form-group mt-3">
-                <!-- <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    id="gridCheck"
-                  />
-                  <label class="form-check-label" for="gridCheck">
-                    Remember Me
-                  </label>
-                </div> -->
-              </div>
-
-              <div class="dual-logo">
-                <button
-                  type="submit"
-                  class="btn btn-primary1"
-                  @click="registerUser"
-                  :disabled="isDisabledSignUp"
-                >
-                  Sign Up
-                </button>
-                <div v-if="loading" class="three-body3">
-                  <div class="three-body__dot1"></div>
-                  <div class="three-body__dot1"></div>
-                  <div class="three-body__dot1"></div>
-                </div>
-              </div>
-            </form>
-          </div>
-          <div>
-            <svg
-              width="67px"
-              height="578px"
-              viewBox="0 0 67 578"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink"
-            >
-              <title>Path</title>
-              <desc>Created with Sketch.</desc>
-              <g
-                id="Page-1"
-                stroke="none"
-                stroke-width="1"
-                fill="none"
-                fill-rule="evenodd"
-              >
-                <path
-                  d="M11.3847656,-5.68434189e-14 C-7.44726562,36.7213542 5.14322917,126.757812 49.15625,270.109375 C70.9827986,341.199016 54.8877465,443.829224 0.87109375,578 L67,578 L67,-5.68434189e-14 L11.3847656,-5.68434189e-14 Z"
-                  id="Path"
-                  fill="#0e1532"
-                ></path>
-              </g>
-            </svg>
-          </div>
-          <div class="column" id="secondary">
-            <div class="sec-content">
-              <h2>Welcome Back!</h2>
-              <h3>Already have an account?</h3>
-              <button
-                type="button"
-                @click="showModal('login')"
-                class="btn btn-primary"
-              >
-                Login
-              </button>
-              <GoogleLogin :callback="googleSignUp" prompt auto-login />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
   <!-- <div v-if="ModalShowing" class="modal-backdrop fade show"></div> -->
-  <div
-    class="modal fade"
-    :class="{ show: loginModalShow, 'd-block': loginModalShow }"
-    id="exampleModalLabel"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="exampleModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog popup-model" role="document">
-      <div class="modal-content">
-        <div class="modal-body">
-          <div class="column" id="main">
-            <button
-              type="button"
-              class="btn-close"
-              @click="hideModal"
-              aria-label="Close"
-            >
-              <i class="fa fa-times"></i>
-            </button>
 
-            <h1>Login</h1>
-
-            <form class="form-start">
-              <div class="main-form1">
-                <div class="form-group">
-                  <label for="exampleInputEmail1">Email </label>
-                  <input
-                    type="email"
-                    class="form-control"
-                    id="exampleInputEmail1"
-                    placeholder="Email"
-                    aria-describedby="emailHelp"
-                    v-model="formDataLogin.email"
-                  />
-                  <div class="text-danger">{{ allErrorsLogin.email }}</div>
-                </div>
-                <div class="form-group">
-                  <label for="exampleInputPassword1">Password</label>
-                  <input
-                    type="password"
-                    class="form-control"
-                    id="exampleInputPassword1"
-                    placeholder="Password"
-                    v-model="formDataLogin.password"
-                  />
-                  <div class="text-danger">{{ allErrorsLogin.password }}</div>
-                </div>
-                <a class="text-body forgotPassword" @click="showModal('forget')"
-                  >Forgot password?</a
-                >
-
-                <div class="text-danger">{{ backendError }}</div>
-              </div>
-              <div class="dual-logo">
-                <button
-                  type="submit"
-                  class="btn btn-primary1"
-                  @click="login"
-                  :disabled="isDisabledLoginUp"
-                >
-                  Login
-                </button>
-                <div v-if="loading" class="three-body3">
-                  <div class="three-body__dot1"></div>
-                  <div class="three-body__dot1"></div>
-                  <div class="three-body__dot1"></div>
-                </div>
-              </div>
-            </form>
-          </div>
-          <div>
-            <svg
-              width="67px"
-              height="578px"
-              viewBox="0 0 67 578"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink"
-            >
-              <title>Path</title>
-              <desc>Created with Sketch.</desc>
-              <g
-                id="Page-1"
-                stroke="none"
-                stroke-width="1"
-                fill="none"
-                fill-rule="evenodd"
-              >
-                <path
-                  d="M11.3847656,-5.68434189e-14 C-7.44726562,36.7213542 5.14322917,126.757812 49.15625,270.109375 C70.9827986,341.199016 54.8877465,443.829224 0.87109375,578 L67,578 L67,-5.68434189e-14 L11.3847656,-5.68434189e-14 Z"
-                  id="Path"
-                  fill="#0e1532"
-                ></path>
-              </g>
-            </svg>
-          </div>
-          <div class="column" id="secondary">
-            <div class="sec-content">
-              <h2>Welcome Back!</h2>
-              <h3>Don't have an account?</h3>
-              <button
-                type="button"
-                class="btn btn-primary"
-                @click="showModal('signup')"
-              >
-                Sign Up
-              </button>
-              <GoogleLogin :callback="googleSignUp" prompt auto-login />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div
     class="modal fade"
