@@ -3,7 +3,6 @@
     <div class="container">
       <div class="resetin-content">
         <div class="resetin-form">
-          <!-- <h2 class="form-title">Reset Password</h2> -->
           <div class="horizontal-info-container text-center">
             <img src="/images/speedylogo.png" />
             <p class="horizontal-heading">Reset your password</p>

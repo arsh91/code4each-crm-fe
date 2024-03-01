@@ -17,6 +17,9 @@ import config from "/config";
 import { useStore } from "@/stores/store";
 import FlashMessage from "@/components/common/FlashMessage.vue";
 import AuthSignupModal from "@/components/common/modals/AuthSignupModal.vue";
+import AuthLoginModal from "@/components/common/modals/AuthLoginModal.vue";
+import EmailResetModal from "@/components/common/modals/EmailResetModal.vue";
+import AlertForSignupModal from "@/components/common/modals/AlertForSignupModal.vue";
 
 const store = useStore();
 const route = useRoute();
@@ -39,7 +42,6 @@ const ModalShowing = ref(false);
 const showSuccessMeassge = ref(false);
 const alertShow = ref(false);
 const loginExist = ref(false);
-const alertRef = ref(null);
 
 const showModal = (modal) => {
   hideModal();
@@ -71,77 +73,9 @@ const showModal = (modal) => {
       showSignUpModal.value =
         false;
   } else if(modal === "feedback") {
-    // console.log('asdasf', modal)
     store.updateFeedbackModalStore();
   }
 };
-
-
-
-const validationSchemaLogin = yup.object({
-  email: yup
-    .string()
-    .email("Please enter a valid email address.")
-    .matches(
-      /^[^+]+@[^+]+\.[^+]+$/,
-      "Email address cannot contain the '+' character."
-    )
-    .required("Please enter your email address."),
-  password: yup
-    .string()
-    .min(6, "Password must be at least 6 characters.")
-    .max(20, "Password must not exceed 20 characters.")
-    .required("Please enter your password."),
-});
-
-
-
-const login = handleSubmit(async () => {
-  try {
-    isDisabledLoginUp.value = true;
-    loading.value = true;
-    await validationSchemaLogin.validate(formDataLogin.value, {
-      abortEarly: false,
-    });
-    allErrorsLogin.value = {};
-    const response = await WordpressService.loginUser(formDataLogin.value);
-    if (response.status === 200 && response.data.success) {
-      const token = response.data.token;
-      localStorage.setItem("access_token", token);
-      const fetchDashboardData = await WordpressService.fetchDashboardData();
-      if (
-        fetchDashboardData.status === 200 &&
-        fetchDashboardData.data.success
-      ) {
-        router.push("/dashboard");
-      } else {
-        router.push("/login");
-      }
-    }
-  } catch (error) {
-    const errors =
-      error.inner && Array.isArray(error.inner)
-        ? error.inner.reduce((acc, err) => {
-            acc[err.path] = err.message;
-            return acc;
-          }, {})
-        : {};
-
-    allErrorsLogin.value = errors;
-    if (error.response && error.response.data && error.response.data.errors) {
-      allErrorsLogin.value = Object.fromEntries(
-        Object.entries(error.response.data.errors).map(([key, value]) => [
-          key,
-          Array.isArray(value) ? value[0] : value,
-        ])
-      );
-    } else {
-      backendError.value = error?.response?.data?.message;
-    }
-  }
-  loading.value = false;
-  isDisabledLoginUp.value = false;
-});
 
 const hideModal = () => {
   ModalShowing.value = false;
@@ -170,19 +104,12 @@ const googleSignUp = async (response) => {
   }
 };
 
-const handleOutsideClick = (event) => {
-  if (alertShow.value && event.target === alertRef.value) {
-    hideModal();
-  }
-};
-
 onMounted(async () => {
-  document.body.addEventListener("click", handleOutsideClick);
   setTimeout(() => {
-    if (!ModalShowing.value && !loginExist.value) {
+    if (!(showSignUpModal.value && loginModalShow.value && forgetModalShow.value) && !loginExist.value) {
       showModal("alert");
     }
-  }, 15000);
+  }, 5000);
   const storedToken = localStorage.getItem("access_token");
   if (storedToken) {
     loginExist.value = storedToken;
@@ -192,52 +119,6 @@ onMounted(async () => {
   }
 });
 
-const validationSchemaForget = yup.object({
-  email: yup
-    .string()
-    .email("Please enter a valid email address.")
-    .matches(
-      /^[^+]+@[^+]+\.[^+]+$/,
-      "Email address cannot contain the '+' character."
-    )
-    .required("Please provide your email address."),
-});
-
-const sendMailToVerifyEmail = handleSubmit(async () => {
-  try {
-    loading.value = true;
-    isForgetAction.value = true;
-    await validationSchemaForget.validate(formDataForget.value, {
-      abortEarly: false,
-    });
-    allErrorsForget.value = {};
-    const response = await WordpressService.ResetPassword.forgotPassword(
-      formDataForget.value
-    );
-    if (response.status === 200 && response.data.success) {
-      hideModal();
-      store.updateFlashMeassge(
-        true,
-        "Please check your inbox and verify your email!"
-      );
-    }
-  } catch (error) {
-    const errors =
-      error.inner && Array.isArray(error.inner)
-        ? error.inner.reduce((acc, err) => {
-            acc[err.path] = err.message;
-            return acc;
-          }, {})
-        : {};
-
-    allErrorsForget.value = errors;
-    if (error.response && error.response.data && error.response.data.errors) {
-      backendError.value = Object.values(error.response.data.errors).flat();
-    }
-  }
-  loading.value = false;
-  isForgetAction.value = false;
-});
 
 
 
@@ -249,6 +130,15 @@ const navigate = () => {
 const navigateToHome = () => {
   router.push("/");
 };
+
+const handleShowModal = (modal) => {
+  if(modal === 'signup'){
+    alertShow.value = false
+  }
+ showModal(modal)
+};
+
+
 </script>
 <template>
   <FlashMessage :visible="store.flashMeassge" v-if="store.flashMeassge" />
@@ -652,177 +542,16 @@ const navigateToHome = () => {
     </div>
   </section>
 
-  <AuthSignupModal :showSignUpModal="showSignUpModal" @closeModal="showSignUpModal=false" ></AuthSignupModal>
+  <AuthSignupModal :showSignUpModal="showSignUpModal" @closeModal="showSignUpModal=false" @showAnotherModal="handleShowModal"></AuthSignupModal>
+  <AuthLoginModal :showLoginModal="loginModalShow" @closeModal="loginModalShow=false" @showAnotherModal="handleShowModal" ></AuthLoginModal>
+  <EmailResetModal :showResetModal="forgetModalShow" @closeModal="forgetModalShow=false" @showAnotherModal="handleShowModal" ></EmailResetModal>
+  <AlertForSignupModal :alertShowModal="alertShow" @alertShowModal="handleShowModal" @closeModal="alertShow=false" ></AlertForSignupModal>
 
-  <!-- <div v-if="ModalShowing" class="modal-backdrop fade show"></div> -->
-
-
-  <div
-    class="modal fade"
-    :class="{ show: forgetModalShow, 'd-block': forgetModalShow }"
-    id="exampleModalLabel"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="exampleModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog popup-model" role="document">
-      <div class="modal-content">
-        <div class="modal-body">
-          <div class="column" id="main">
-            <button
-              type="button"
-              class="btn-close"
-              @click="hideModal"
-              aria-label="Close"
-            >
-              <i class="fa fa-times"></i>
-            </button>
-
-            <h1>Forgot Password?</h1>
-
-            <form class="form-start">
-              <div class="main-form1">
-                <div class="form-group">
-                  <label for="exampleInputEmail1">Email </label>
-                  <input
-                    type="email"
-                    class="form-control"
-                    id="exampleInputEmail1"
-                    placeholder="Enter Registered Email"
-                    aria-describedby="emailHelp"
-                    v-model="formDataForget.email"
-                  />
-                </div>
-                <div class="text-danger">{{ allErrorsForget.email }}</div>
-                <div class="text-danger">{{ backendError }}</div>
-              </div>
-
-              <div class="dual-logo">
-                <button
-                  type="submit"
-                  class="btn btn-primary1"
-                  @click="sendMailToVerifyEmail"
-                  :disabled="isForgetAction"
-                >
-                  Email Reset Link
-                </button>
-                <div v-if="loading" class="three-body3">
-                  <div class="three-body__dot1"></div>
-                  <div class="three-body__dot1"></div>
-                  <div class="three-body__dot1"></div>
-                </div>
-              </div>
-            </form>
-          </div>
-          <div>
-            <svg
-              width="67px"
-              height="578px"
-              viewBox="0 0 67 578"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink"
-            >
-              <title>Path</title>
-              <desc>Created with Sketch.</desc>
-              <g
-                id="Page-1"
-                stroke="none"
-                stroke-width="1"
-                fill="none"
-                fill-rule="evenodd"
-              >
-                <path
-                  d="M11.3847656,-5.68434189e-14 C-7.44726562,36.7213542 5.14322917,126.757812 49.15625,270.109375 C70.9827986,341.199016 54.8877465,443.829224 0.87109375,578 L67,578 L67,-5.68434189e-14 L11.3847656,-5.68434189e-14 Z"
-                  id="Path"
-                  fill="#0e1532"
-                ></path>
-              </g>
-            </svg>
-          </div>
-          <div class="column" id="secondary">
-            <div class="sec-content">
-              <h2>Welcome Back!</h2>
-              <h3>Already have an account?</h3>
-              <button
-                type="button"
-                @click="showModal('login')"
-                class="btn btn-primary"
-              >
-                Login
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <div
-    class="modal try-free alert-try-free-modal"
-    id="exampleModaltry"
-    tabindex="-1"
-    role="dialog"
-    :class="{ show: alertShow, 'd-block': alertShow }"
-    ref="alertRef"
-  >
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-body">
-          <div class="subscription-wrapper">
-            <div class="subscription-text-side">
-              <h3 class="subscription-heading">
-                Hey! We've noticed you've been exploring our website for the
-                last 15 seconds. Guess what our average website creation time is
-                5 seconds. Your business will be online in this time period.
-                Ready to take your online presence to new heights?
-              </h3>
-            </div>
-            <div class="subscription-form-side">
-              <a
-                class="btn btn-lg button-trial rounded-pill hover-top"
-                @click="showModal('signup')"
-                >TRY FOR FREE
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </template>
 <style scoped>
 .forgotPassword {
   cursor: pointer;
 }
-.succmsg {
-  color: "#197817";
-}
-.alert-try-free-modal h3.subscription-heading {
-  font-size: 18px !important;
-  line-height: 28px;
-  font-weight: normal;
-  letter-spacing: 0 !important;
-}
-.alert-try-free-modal .subscription-text-side {
-  width: 85%;
-}
 
-.buttons-design h5 {
-  color: #df3650;
-  text-align: left;
-  font-size: 20px;
-  padding: 15px 0;
-}
-
-.buttons-design {
-  display: block;
-}
 </style>
 

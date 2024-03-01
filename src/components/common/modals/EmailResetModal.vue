@@ -1,11 +1,12 @@
 <template>
-  <div v-if="showLoginModal" class="modal-backdrop fade show"></div>
+  <div v-if="showResetModal" class="modal-backdrop fade show"></div>
   <div
     class="modal fade"
-    :class="{ show: showLoginModal, 'd-block': showLoginModal }"
+    :class="{ show: showResetModal, 'd-block': showResetModal }"
+    id="exampleModalLabel"
     tabindex="-1"
     role="dialog"
-    aria-labelledby="Speedy Sites Login"
+    aria-labelledby="exampleModalLabel"
     aria-hidden="true"
   >
     <div class="modal-dialog popup-model" role="document">
@@ -15,13 +16,13 @@
             <button
               type="button"
               class="btn-close"
-              @click="hideLoginModal"
+              @click="hideForgetModal"
               aria-label="Close"
             >
               <i class="fa fa-times"></i>
             </button>
 
-            <h1>Login</h1>
+            <h1>Forgot Password?</h1>
 
             <form class="form-start">
               <div class="main-form1">
@@ -31,39 +32,25 @@
                     type="email"
                     class="form-control"
                     id="exampleInputEmail1"
-                    placeholder="Email"
+                    placeholder="Enter Registered Email"
                     aria-describedby="emailHelp"
-                    v-model="formDataLogin.email"
+                    v-model="formDataForget.email"
                   />
-                  <div class="text-danger">{{ allErrorsLogin.email }}</div>
                 </div>
-                <div class="form-group">
-                  <label for="exampleInputPassword1">Password</label>
-                  <input
-                    type="password"
-                    class="form-control"
-                    id="exampleInputPassword1"
-                    placeholder="Password"
-                    v-model="formDataLogin.password"
-                  />
-                  <div class="text-danger">{{ allErrorsLogin.password }}</div>
-                </div>
-                <a class="text-body forgotPassword" @click="emits('showAnotherModal', 'forget')"
-                  >Forgot password?</a
-                >
-
+                <div class="text-danger">{{ allErrorsForget.email }}</div>
                 <div class="text-danger">{{ backendError }}</div>
               </div>
+
               <div class="dual-logo">
                 <button
                   type="submit"
                   class="btn btn-primary1"
-                  @click="login"
-                  :disabled="underAction"
+                  @click="sendMailToVerifyEmail"
+                  :disabled="isForgetAction"
                 >
-                  Login
+                  Email Reset Link
                 </button>
-                <div v-if="underAction" class="three-body3">
+                <div v-if="isForgetAction" class="three-body3">
                   <div class="three-body__dot1"></div>
                   <div class="three-body__dot1"></div>
                   <div class="three-body__dot1"></div>
@@ -100,15 +87,14 @@
           <div class="column" id="secondary">
             <div class="sec-content">
               <h2>Welcome Back!</h2>
-              <h3>Don't have an account?</h3>
+              <h3>Already have an account?</h3>
               <button
                 type="button"
+                @click="emits('showAnotherModal', 'login')"
                 class="btn btn-primary"
-                @click="emits('showAnotherModal', 'signup')"
               >
-                Sign Up
+                Login
               </button>
-              <!-- <GoogleLogin :callback="googleSignUp" prompt auto-login /> -->
             </div>
           </div>
         </div>
@@ -129,31 +115,24 @@ import {
 import { useForm } from "vee-validate";
 import * as yup from "yup";
 import WordpressService from "@/service/WordpressService";
-import { useRouter } from "vue-router";
+import { useStore } from "@/stores/store";
 
-const { Errors, resetForm, handleSubmit } = useForm();
-
-const allErrorsLogin = ref({})
-const formDataLogin = ref({})
+const store = useStore();
 const emits = defineEmits();
-const underAction = ref(false);
-const router = useRouter();
-const backendError = ref("");
-
 const props = defineProps({
-  showLoginModal: {
+  showResetModal: {
       type:Boolean,
       default:false
     }
 });
 
-const hideLoginModal = () => {
-  formDataLogin.value = {};
-  allErrorsLogin.value = {};
-  emits("closeModal");
-};
+const { Errors, resetForm, handleSubmit } = useForm();
+const formDataForget = ref({});
+const allErrorsForget = ref({});
+const backendError = ref("");
+const isForgetAction = ref(false);
 
-const validationSchemaLogin = yup.object({
+const validationSchemaForget = yup.object({
   email: yup
     .string()
     .email("Please enter a valid email address.")
@@ -161,34 +140,25 @@ const validationSchemaLogin = yup.object({
       /^[^+]+@[^+]+\.[^+]+$/,
       "Email address cannot contain the '+' character."
     )
-    .required("Please enter your email address."),
-  password: yup
-    .string()
-    .min(6, "Password must be at least 6 characters.")
-    .max(20, "Password must not exceed 20 characters.")
-    .required("Please enter your password."),
+    .required("Please provide your email address."),
 });
 
-const login = handleSubmit(async () => {
+const sendMailToVerifyEmail = handleSubmit(async () => {
   try {
-    underAction.value = true;
-    await validationSchemaLogin.validate(formDataLogin.value, {
+    isForgetAction.value = true;
+    await validationSchemaForget.validate(formDataForget.value, {
       abortEarly: false,
     });
-    allErrorsLogin.value = {};
-    const response = await WordpressService.loginUser(formDataLogin.value);
+    allErrorsForget.value = {};
+    const response = await WordpressService.ResetPassword.forgotPassword(
+      formDataForget.value
+    );
     if (response.status === 200 && response.data.success) {
-      const token = response.data.token;
-      localStorage.setItem("access_token", token);
-      const fetchDashboardData = await WordpressService.fetchDashboardData();
-      if (
-        fetchDashboardData.status === 200 &&
-        fetchDashboardData.data.success
-      ) {
-        router.push("/dashboard");
-      } else {
-        router.push("/login");
-      }
+      hideForgetModal();
+      store.updateFlashMeassge(
+        true,
+        "Please check your inbox and verify your email!"
+      );
     }
   } catch (error) {
     const errors =
@@ -199,9 +169,9 @@ const login = handleSubmit(async () => {
           }, {})
         : {};
 
-    allErrorsLogin.value = errors;
+    allErrorsForget.value = errors;
     if (error.response && error.response.data && error.response.data.errors) {
-      allErrorsLogin.value = Object.fromEntries(
+      allErrorsForget.value = Object.fromEntries(
         Object.entries(error.response.data.errors).map(([key, value]) => [
           key,
           Array.isArray(value) ? value[0] : value,
@@ -211,7 +181,13 @@ const login = handleSubmit(async () => {
       backendError.value = error?.response?.data?.message;
     }
   }
-  underAction.value = false;
+  isForgetAction.value = false;
 });
 
+
+const hideForgetModal = () => {
+  formDataForget.value = {};
+  allErrorsForget.value = {};
+  emits('closeModal');
+};
 </script>

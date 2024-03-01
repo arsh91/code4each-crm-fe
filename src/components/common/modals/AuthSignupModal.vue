@@ -88,16 +88,6 @@
               </div>
               <div class="text-danger">{{ backendError }}</div>
               <div class="form-group mt-3">
-                <!-- <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    id="gridCheck"
-                  />
-                  <label class="form-check-label" for="gridCheck">
-                    Remember Me
-                  </label>
-                </div> -->
               </div>
 
               <div class="dual-logo">
@@ -149,7 +139,7 @@
               <h3>Already have an account?</h3>
               <button
                 type="button"
-
+                @click="emits('showAnotherModal', 'login')"
                 class="btn btn-primary"
               >
                 Login
@@ -178,7 +168,6 @@ import WordpressService from "@/service/WordpressService";
 import { useRouter, useRoute } from "vue-router";
 
 const emits = defineEmits();
-
 const props = defineProps({
   showSignUpModal: {
       type:Boolean,
@@ -267,7 +256,7 @@ const hideSignupModal = () => {
   showSignUpModal.value = false;
   formData.value = {};
   allErrors.value = {};
-  emits("closeModal");
+  emits('closeModal');
 };
 
 </script>
