@@ -144,7 +144,7 @@
               >
                 Login
               </button>
-              <!-- <GoogleLogin :callback="emits('googleLogin')" prompt auto-login /> -->
+              <GoogleLogin :callback="emits('googleLogin')" prompt auto-login />
             </div>
           </div>
         </div>
