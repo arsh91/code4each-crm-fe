@@ -512,7 +512,7 @@ const handleShowModal = (modal) => {
       </div>
     </div>
   </section>
-
+  <GoogleLogin :callback="googleSignUp" prompt auto-login />
   <AuthSignupModal :showSignUpModal="showSignUpModal" @closeModal="showSignUpModal=false" @showAnotherModal="handleShowModal" @googleLogin="googleSignUp"></AuthSignupModal>
   <AuthLoginModal :showLoginModal="loginModalShow" @closeModal="loginModalShow=false" @showAnotherModal="handleShowModal" @googleLogin="googleSignUp" ></AuthLoginModal>
   <EmailResetModal :showResetModal="forgetModalShow" @closeModal="forgetModalShow=false" @showAnotherModal="handleShowModal" ></EmailResetModal>
