@@ -23,7 +23,7 @@
             <div class="subscription-form-side">
               <a
                 class="btn btn-lg button-trial rounded-pill hover-top"
-                @click="handleClick"              
+                @click="emits('showAnotherModal', 'signup')"              
                  >TRY FOR FREE
                 <span></span>
                 <span></span>
@@ -42,10 +42,7 @@ import {
   ref,
   defineProps,
   onMounted,
-  defineEmits,
-  inject,
-  computed,
-  watch,
+  defineEmits
 } from "vue";
 
 const emits = defineEmits();
@@ -59,18 +56,15 @@ const alertRef = ref(null);
 
 const handleOutsideClick = (event) => {
   if (props.alertShowModal && event.target === alertRef.value) {
-    hideModal();
+    emits('closeModal')
+
   }
 };
 
 onMounted(async () => {
-  // document.body.addEventListener("click", handleOutsideClick);
+  document.body.addEventListener("click", handleOutsideClick);
 });
 
-const handleClick = () => {
-  emits('showAnotherModal', 'signup')
-  // emits('closeModal')
-};
 </script>
 <style scoped>
 .alert-try-free-modal h3.subscription-heading {

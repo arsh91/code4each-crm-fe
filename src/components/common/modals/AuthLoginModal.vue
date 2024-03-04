@@ -108,7 +108,7 @@
               >
                 Sign Up
               </button>
-              <!-- <GoogleLogin :callback="googleSignUp" prompt auto-login /> -->
+              <GoogleLogin :callback="emits('googleLogin')" prompt auto-login />
             </div>
           </div>
         </div>

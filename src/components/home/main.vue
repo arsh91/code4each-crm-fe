@@ -1,19 +1,10 @@
 <script setup>
 import {
   ref,
-  defineProps,
   onMounted,
-  provide,
-  inject,
-  computed,
-  watch,
 } from "vue";
 import WordpressService from "@/service/WordpressService";
-import { useForm } from "vee-validate";
-import { useAuth } from "@/service/useAuth";
 import { useRouter, useRoute } from "vue-router";
-import * as yup from "yup";
-import config from "/config";
 import { useStore } from "@/stores/store";
 import FlashMessage from "@/components/common/FlashMessage.vue";
 import AuthSignupModal from "@/components/common/modals/AuthSignupModal.vue";
@@ -23,23 +14,12 @@ import AlertForSignupModal from "@/components/common/modals/AlertForSignupModal.
 
 const store = useStore();
 const route = useRoute();
-const allErrorsLogin = ref({});
-const allErrorsForget = ref({});
-const allErrorsResset = ref({});
-const formDataForget = ref({});
-const formDataResset = ref({});
 const router = useRouter();
-const { Errors, resetForm, handleSubmit } = useForm();
 const showSignUpModal = ref(false);
 const forgetModalShow = ref(false);
 const loginModalShow = ref(false);
-const loading = ref(false);
-const isDisabledLoginUp = ref(false);
-const formDataLogin = ref({});
 const backendError = ref("");
-const isForgetAction = ref(false);
 const ModalShowing = ref(false);
-const showSuccessMeassge = ref(false);
 const alertShow = ref(false);
 const loginExist = ref(false);
 
@@ -60,7 +40,6 @@ const showModal = (modal) => {
       alertShow.value =
         false;
   } else if (modal === "signup") {
-    console.log('sdfdsfs', modal);
     showSignUpModal.value = true;
     forgetModalShow.value =
       loginModalShow.value =
@@ -82,15 +61,10 @@ const hideModal = () => {
   forgetModalShow.value = false;
   loginModalShow.value = false;
   alertShow.value = false;
-  allErrorsLogin.value = {};
-  allErrorsResset.value = {};
-  formDataLogin.value = {};
-  formDataForget.value = {};
 };
 
 const googleSignUp = async (response) => {
   try {
-    console.log(response);
     const apiResponse = await WordpressService.GoogleLogin.googleSignUp({
       id_token: response.credential,
     });
@@ -105,11 +79,13 @@ const googleSignUp = async (response) => {
 };
 
 onMounted(async () => {
+  window.onload = () => {
   setTimeout(() => {
-    if (!(showSignUpModal.value && loginModalShow.value && forgetModalShow.value) && !loginExist.value) {
+    if (!(showSignUpModal.value || loginModalShow.value || forgetModalShow.value) && !loginExist.value) {
       showModal("alert");
     }
-  }, 5000);
+  }, 15000);
+  };
   const storedToken = localStorage.getItem("access_token");
   if (storedToken) {
     loginExist.value = storedToken;
@@ -118,10 +94,6 @@ onMounted(async () => {
     loginModalShow.value = true;
   }
 });
-
-
-
-
 
 const navigate = () => {
   router.push("/dashboard");
@@ -137,7 +109,6 @@ const handleShowModal = (modal) => {
   }
  showModal(modal)
 };
-
 
 </script>
 <template>
@@ -542,16 +513,9 @@ const handleShowModal = (modal) => {
     </div>
   </section>
 
-  <AuthSignupModal :showSignUpModal="showSignUpModal" @closeModal="showSignUpModal=false" @showAnotherModal="handleShowModal"></AuthSignupModal>
-  <AuthLoginModal :showLoginModal="loginModalShow" @closeModal="loginModalShow=false" @showAnotherModal="handleShowModal" ></AuthLoginModal>
+  <AuthSignupModal :showSignUpModal="showSignUpModal" @closeModal="showSignUpModal=false" @showAnotherModal="handleShowModal" @googleLogin="googleSignUp"></AuthSignupModal>
+  <AuthLoginModal :showLoginModal="loginModalShow" @closeModal="loginModalShow=false" @showAnotherModal="handleShowModal" @googleLogin="googleSignUp" ></AuthLoginModal>
   <EmailResetModal :showResetModal="forgetModalShow" @closeModal="forgetModalShow=false" @showAnotherModal="handleShowModal" ></EmailResetModal>
-  <AlertForSignupModal :alertShowModal="alertShow" @alertShowModal="handleShowModal" @closeModal="alertShow=false" ></AlertForSignupModal>
-
+  <AlertForSignupModal :alertShowModal="alertShow" @closeModal="alertShow=false" @showAnotherModal="handleShowModal"></AlertForSignupModal>
 </template>
-<style scoped>
-.forgotPassword {
-  cursor: pointer;
-}
-
-</style>
 
