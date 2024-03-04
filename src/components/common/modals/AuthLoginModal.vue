@@ -108,7 +108,6 @@
               >
                 Sign Up
               </button>
-              <!-- <GoogleLogin :callback="emits('googleLogin')" prompt auto-login /> -->
               <GoogleLogin />
             </div>
           </div>
@@ -121,11 +120,7 @@
 import {
   ref,
   defineProps,
-  onMounted,
-  defineEmits,
-  inject,
-  computed,
-  watch,
+  defineEmits
 } from "vue";
 import { useForm } from "vee-validate";
 import * as yup from "yup";

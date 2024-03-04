@@ -3,7 +3,6 @@ import {
   ref,
   onMounted,
 } from "vue";
-import WordpressService from "@/service/WordpressService";
 import { useRouter, useRoute } from "vue-router";
 import { useStore } from "@/stores/store";
 import FlashMessage from "@/components/common/FlashMessage.vue";
@@ -61,21 +60,6 @@ const hideModal = () => {
   forgetModalShow.value = false;
   loginModalShow.value = false;
   alertShow.value = false;
-};
-
-const googleSignUp = async (response) => {
-  try {
-    const apiResponse = await WordpressService.GoogleLogin.googleSignUp({
-      id_token: response.credential,
-    });
-    if (apiResponse.status === 200 && apiResponse.data.success) {
-      const token = apiResponse.data.access_token;
-      localStorage.setItem("access_token", token);
-      router.push("/dashboard");
-    }
-  } catch (error) {
-    console.error(error);
-  }
 };
 
 onMounted(async () => {
@@ -461,7 +445,6 @@ const handleShowModal = (modal) => {
       </div>
     </div>
   </div>
-
   <section class="email-custom">
     <div class="container-fluid grid-row">
       <div class="grid-customsection">
@@ -512,10 +495,9 @@ const handleShowModal = (modal) => {
       </div>
     </div>
   </section>
-  <AuthSignupModal :showSignUpModal="showSignUpModal" @closeModal="showSignUpModal=false" @showAnotherModal="handleShowModal" @googleLogin="googleSignUp"></AuthSignupModal>
-  <AuthLoginModal :showLoginModal="loginModalShow" @closeModal="loginModalShow=false" @showAnotherModal="handleShowModal" @googleLogin="googleSignUp" ></AuthLoginModal>
+  <AuthSignupModal :showSignUpModal="showSignUpModal" @closeModal="showSignUpModal=false" @showAnotherModal="handleShowModal"></AuthSignupModal>
+  <AuthLoginModal :showLoginModal="loginModalShow" @closeModal="loginModalShow=false" @showAnotherModal="handleShowModal" ></AuthLoginModal>
   <EmailResetModal :showResetModal="forgetModalShow" @closeModal="forgetModalShow=false" @showAnotherModal="handleShowModal" ></EmailResetModal>
   <AlertForSignupModal :alertShowModal="alertShow" @closeModal="alertShow=false" @showAnotherModal="handleShowModal"></AlertForSignupModal>
-  <GoogleLogin :callback="googleSignUp" prompt auto-login />
 </template>
 
