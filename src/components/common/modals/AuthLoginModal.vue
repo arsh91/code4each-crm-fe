@@ -131,7 +131,7 @@ import { useForm } from "vee-validate";
 import * as yup from "yup";
 import WordpressService from "@/service/WordpressService";
 import { useRouter } from "vue-router";
-// import GoogleLogin from "@/components/common/modals/GoogleLogin.vue";
+import GoogleLogin from "@/components/common/modals/GoogleLogin.vue";
 
 const { Errors, resetForm, handleSubmit } = useForm();
 
