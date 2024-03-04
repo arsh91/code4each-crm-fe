@@ -165,7 +165,8 @@ import {
 import { useForm } from "vee-validate";
 import * as yup from "yup";
 import WordpressService from "@/service/WordpressService";
-import { useRouter, useRoute } from "vue-router";
+import { useRouter } from "vue-router";
+import GoogleLogin from "@/components/common/modals/GoogleLogin.vue";
 
 const emits = defineEmits();
 const props = defineProps({
