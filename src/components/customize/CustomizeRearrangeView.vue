@@ -309,11 +309,6 @@ const regenerateWebsite = async () => {
 
 </template>
 <style>
-.image-container {
-  position: relative;
-  display: inline-block;
-  margin: 10px;
-}
 
 .button-container {
   position: absolute;
@@ -476,12 +471,11 @@ button.btn.btn-primary.next-step {
     padding-top: 0px;
 }
 .dragArea.list-group.w-full .image-container img {
-    width: 385px;
-    display: flex;
-    justify-content: center;
-    margin: 0px auto;
-    max-height: 190px;
-    /* max-height: 212px; */
+  display: flex;
+  justify-content: center;
+  margin: 5px 0;
+  max-height: 200px;
+  border: 1px dashed;
 }
 .dragArea.list-group.w-full .image-container {
     /* position: relative; */
