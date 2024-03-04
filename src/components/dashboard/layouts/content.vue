@@ -1,15 +1,11 @@
 <script setup>
 import { ref, defineProps, watch, onMounted } from "vue";
 import Alert from "../elements/Alert.vue";
-import AgencyButton from "../elements/AgencyButton.vue";
-import AgencyWebsite from "../elements/AgencyWebsite.vue";
-import WebsiteUrl from "../elements/WebsiteUrl.vue";
 import WordpressService from "@/service/WordpressService";
 import AgencyDetailModal from "../elements/AgencyDetailModal.vue";
 import SiteSettings from "@/views/SiteSettings.vue";
 import { useStore } from "@/stores/store";
 import { useForm } from "vee-validate";
-import * as yup from "yup";
 import Loader from "@/components/common/Loader.vue";
 
 const allErrors = ref({});
@@ -25,10 +21,9 @@ const categories = ref([]);
 const allDashboardData = ref();
 const showModal = ref(false);
 const deatilModalShow = ref(false);
-const { errors, resetForm, handleSubmit } = useForm();
 const store = useStore();
 const values = ref({
-  type: "", // Default value
+  type: "",
 });
 const errorMessage = ref("");
 const feedBackloading = ref(false);
@@ -37,7 +32,6 @@ watch(
   () => props.dashboardData,
   (newDashboardData, OldDashboardData) => {
     allDashboardData.value = props.dashboardData;
-    // loading.value = false;
   },
   {
     deep: true,
@@ -47,7 +41,6 @@ watch(
 onMounted(() => {
   allDashboardData.value = props.dashboardData;
   allErrors.value = {};
-  // loading.value = false;
 });
 
 const openModalWithCategories = async () => {
@@ -55,7 +48,6 @@ const openModalWithCategories = async () => {
     const response = await WordpressService.getCategoryOption();
     if (response.status === 200 && response.data.success) {
       categories.value = response.data.categories;
-      // showModal.value = true;
     }
     console.log(showModal.value);
   } catch (error) {
@@ -101,7 +93,7 @@ const emptyForm = () => {
       <div v-else class="main-container container">
         <div id="wrapper" :class="loading ? 'fade' : ''">
           <section
-            v-if="dashboardData?.agency_website_info?.length === 1"
+            v-if="dashboardData?.agency_website_info?.length >= 1 && dashboardData.user.user_type != 'developer'"
             class="speedy-subscription bg-white"
           >
             <div class="container">
@@ -110,14 +102,14 @@ const emptyForm = () => {
                   <div class="speedy-subscription-wrapper">
                     <div class="subscription-text-side">
                       <h3 class="subscription-heading">
-                        Only
+                        
                         {{
                           calculateDaysDifference(
                             dashboardData.agency_website_info[0].created_at
-                          )
+                          ) <= 0 ? "Congratulations! We're increasing your free usage limit 🚀" :`Only days ${calculateDaysDifference(
+                            dashboardData.agency_website_info[0].created_at
+                          )} left in your free trial! ⏳ Upgrade now for seamless website creation`
                         }}
-                        days left in your free trial! ⏳ Upgrade now for
-                        seamless website creation
                       </h3>
                     </div>
                     <!-- <div class="subscription-form-side">

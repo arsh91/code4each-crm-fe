@@ -3,7 +3,7 @@
 </template>
 <script setup>
 import WordpressService from "@/service/WordpressService";
-import { useRouter, useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 
