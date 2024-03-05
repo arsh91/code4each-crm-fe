@@ -239,12 +239,6 @@ const regenerateWebsite = async () => {
         >
           <div class="panel-header-title">
            <h5 class="panel-header-title-span">   Rearrange Components </h5>
-            <!--  <img
-              src="/images/export.png"
-              @click="openLinkInNewTab(siteSettingsDeatil.website_domain)"
-              style="cursor: pointer"
-            /> -->
-         
           </div>
         </header>
 
