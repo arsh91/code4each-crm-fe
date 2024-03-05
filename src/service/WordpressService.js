@@ -48,6 +48,14 @@ const WordpressService = {
     changeComponentPosition: (data) => {
       return requests(baseUrl).post(`/update-component-position`, data)
     },
+    getComponentsToAdd: (data) => {
+      return requests(baseUrl).get(`/get-components`, {
+        params: data
+      })
+    },
+    addComponent: (data) => {
+      return requests(baseUrl).post(`/add-new-section`, data)
+    },
   },
   CustomizeColors: {
     getDefaulColors: (data) => {

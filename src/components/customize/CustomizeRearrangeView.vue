@@ -76,6 +76,7 @@ const onStartComponentPosition = (evt) => {
 const saveComponentPosition = async () => {
   try {
     loadingForComonents.value = true;
+    loading.value = true;
     saveComponentPositionBtn.value = false;
     const response = await WordpressService.Components.changeComponentPosition({
       updated_positions: storeComponentsPosition.value,
@@ -89,6 +90,7 @@ const saveComponentPosition = async () => {
     console.error("An error occurred:", error);
   }
   loadingForComonents.value = false;
+  loading.value = false;
 };
 
 const updateItemPositions = () => {
@@ -210,7 +212,7 @@ const regenerateWebsite = async () => {
     <section id="content-wrapper main-content side-content">
       <div class="side-app">
         <div class="main-container-components container">
-          <div id="wrapper">
+          <div id="wrapper" :class="loading ? 'fade' : ''">
             <div
               class="eidtor-site"
               aria-hidden="true"
