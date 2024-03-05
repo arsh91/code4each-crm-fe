@@ -196,7 +196,6 @@ const regenerateWebsite = async () => {
   loading.value = false;
 };
 </script>
-
 <template>
   <div class="page">
     <FlashMessage :visible="store.flashMeassge" v-if="store.flashMeassge" />
