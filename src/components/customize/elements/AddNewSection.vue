@@ -1,5 +1,13 @@
 <template>
     <div class="tabs">
+          <header
+          data-hook="panel-header"
+          class="panel-header panel-header-flex theme-standard without-stripe"
+        >
+          <div class="panel-header-title">
+           <h5 class="panel-header-title-span"> Add New Section </h5>
+          </div>
+        </header>
         <div
          v-for="(
                 allComponentValue, index
@@ -7,7 +15,7 @@
             :key="index"
             >
             <div
-            :class="!newComponent ? 'new-layout' : 'Current-layout'"
+            :class="newComponent != allComponentValue.component_unique_id ? 'new-layout' : 'Current-layout'"
             @click="newComponent = allComponentValue.component_unique_id"
             >
                 <i
