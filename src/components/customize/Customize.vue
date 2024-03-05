@@ -3,24 +3,20 @@ import NavBar from "@/components/dashboard/layouts/navbar.vue";
 import SideBar from "@/components/dashboard/layouts/sidebar.vue";
 import { useAuth } from "@/service/useAuth";
 import { useRouter } from "vue-router";
-import { ref, defineProps, onMounted, provide, inject, watch } from "vue";
+import { ref, onMounted, provide, watch } from "vue";
 import WordpressService from "@/service/WordpressService";
-import Modal from "@/components/common/Modal.vue";
 import Loader from "@/components/common/Loader.vue";
-import Swal from "sweetalert2";
 import EditSiteSettingsFormBuilder from "@/components/common/EditSiteSettingsFormBuilder.vue";
 import EditSiteSettingsButtonFormBuilder from "@/components/common/EditSiteSettingsButtonFormBuilder.vue";
 import { useStore } from "@/stores/store";
-import { capitalizeAndReplaceChar } from "@/util/helper";
-import { VueDraggableNext } from "vue-draggable-next";
 import config from "/config";
 import { openLinkInNewTab } from "@/util/helper";
 import { EventBus } from "@/EventBus";
 import DeleteModal from "@/components/common/DeleteModal.vue";
 import ConfirmModal from "@/components/common/ConfirmModal.vue";
 import ProcessCompleteModal from "@/components/common/ProcessCompleteModal.vue";
-import AnimationLoader from "@/components/common/AnimationLoader.vue";
 import FlashMessage from "@/components/common/FlashMessage.vue";
+import AddNewSection from "./elements/AddNewSection.vue";
 
 const router = useRouter();
 const { logout } = useAuth();
@@ -39,9 +35,8 @@ const loading = ref(true);
 const error = ref(false);
 const errors = ref([]);
 const dashboardData = ref([]);
-const userData = ref([]);
+const tabsShow = ref(true);
 const showModal = ref(false);
-const loadingForComonents = ref(true);
 const oldComponent = ref();
 const newComponent = ref();
 const showEditComponentFieldModal = ref(false);
@@ -52,12 +47,8 @@ const componentsFieldsUnderEdit = ref({
   type: null,
 });
 const saveComponentPositionBtn = ref(false);
-const enabled = ref(true);
-const disableDragDrop = ref(true);
 const itemDraggingStates = ref({});
-const showEditMupltipleImagesModal = ref(false);
 const uploadedFiles = ref([]);
-const disableImageSubmitButton = ref();
 const fileInput = ref(null);
 const componentImagesAcctoType = ref();
 const selectedComponentPreviewImgSrc = ref();
@@ -66,6 +57,7 @@ const currentTab = ref("image");
 const selectedDeletedImageUrl = ref(null);
 const deleteLoading = ref(false);
 const deleteComponentImageModal = ref(false);
+const positionForAddSection = ref(null);
 
 const fetchDashboardData = async () => {
   try {
@@ -117,6 +109,7 @@ const getActiveComponentsData = async () => {
 
 const openModal = async (compType, oldComponentUniqueeId, src) => {
   try {
+    tabsShow.value = true
     newComponent.value = null;
     const response = await WordpressService.Components.getAllComponents({
       type: compType,
@@ -143,7 +136,6 @@ onMounted(async () => {
   await getSiteDeatils();
   await fetchDashboardData();
   await getActiveComponentsData();
-  loadingForComonents.value = false;
 });
 
 watch(
@@ -159,31 +151,10 @@ provide("dashBoardMethods", {
   fetchDashboardData,
 });
 
-const closeModal = () => {
-  allComponentsDetailAccToType.value = [];
-  showModal.value = false;
-  showEditComponentFieldModal.value = false;
-  selectedImage.value = null;
-  siteSettingsFormFields.value = null;
-  showEditMupltipleImagesModal.value = false;
-  uploadedFiles.value = [];
-  fileInput.value = null;
-};
-
-const showSelectedComponent = (component_unique_id) => {
-  if (component_unique_id === oldComponent.value) {
-    return;
-  }
-  selectedImage.value = component_unique_id;
-  newComponent.value = component_unique_id;
-};
-
 const changeComponent = async () => {
   try {
     loading.value = true;
     btnDisable.value = true;
-    loadingForComonents.value = true;
-
     const response = await WordpressService.Components.changeComponent({
       website_url: siteSettingsDeatil.value?.website_domain,
       component_unique_id_old: oldComponent.value,
@@ -197,7 +168,7 @@ const changeComponent = async () => {
   } catch (error) {
     console.error("An error occurred:", error);
   }
-  loadingForComonents.value = false;
+
   btnDisable.value = false;
   loading.value = false;
 };
@@ -271,7 +242,6 @@ const submitCustomFields = async (data) => {
         form_fields: formFields,
       });
     if (response.status === 200 && response.data.success) {
-      loadingForComonents.value = false;
       store.updateFlashMeassge(true, "Changes Saved Sucessfully");
     }
   } catch (error) {
@@ -302,41 +272,6 @@ const onEndComponentPosition = (evt) => {
   }
 };
 
-const onStartComponentPosition = (evt) => {
-  saveComponentPositionBtn.value = false;
-};
-
-const saveComponentPosition = async () => {
-  try {
-    loading.value = true;
-    loadingForComonents.value = true;
-    saveComponentPositionBtn.value = false;
-    const response = await WordpressService.Components.changeComponentPosition({
-      updated_positions: storeComponentsPosition.value,
-      website_url: siteSettingsDeatil.value?.website_domain,
-    });
-    if (response.status === 200 && response.data.success) {
-      Swal.fire({
-        title: "<strong>Saved!</strong>",
-        icon: "success",
-        html:
-          "Changes Saved Successfully, " +
-          '<a href="' +
-          siteSettingsDeatil.value?.website_domain +
-          '" target= "_blank">preview your site</a> ',
-        showCloseButton: true,
-        showCancelButton: true,
-        focusConfirm: false,
-      });
-      getActiveComponentsData();
-    }
-  } catch (error) {
-    console.error("An error occurred:", error);
-  }
-  loadingForComonents.value = false;
-  loading.value = false;
-};
-
 const updateItemPositions = () => {
   storeComponentsPosition.value = activeComponentsDetail.value.map(
     (compo, index) => ({
@@ -358,15 +293,6 @@ const handleFileUpload = () => {
 };
 const getImageUrl = (file) => {
   return window.URL.createObjectURL(file);
-};
-
-const handleEditImagesModal = async (componentUniqueId, type) => {
-  loading.value = true;
-  componentsFieldsUnderEdit.value.id = componentUniqueId;
-  componentsFieldsUnderEdit.value.type = type;
-  showEditMupltipleImagesModal.value = true;
-  getComponentsImages();
-  loading.value = false;
 };
 
 const getComponentsImages = async () => {
@@ -487,8 +413,17 @@ const regenerateWebsite = async () => {
   }
   loading.value = false;
 };
-</script>
 
+
+const addSectionHandle = (position) => {
+  positionForAddSection.value = position
+  tabsShow.value = false
+};
+
+const showloading = (value)=>{
+  loading.value = value
+}
+</script>
 <template>
   <div class="page">
     <FlashMessage :visible="store.flashMeassge" v-if="store.flashMeassge" />
@@ -524,6 +459,12 @@ const regenerateWebsite = async () => {
                 >
                   <img :src="config.CRM_API_URL + compValue.preview" />
                 </div>
+                <div class="main-div1" @click="addSectionHandle(index+2)"><div class="edit-section">
+    
+                  </div><h1><i class="fa fa-plus"></i>  Add new section <i class="fa fa-plus"></i></h1>
+                <div class="edit-section1">
+
+                  </div></div>
               </div>
             </div>
           </div>
@@ -549,7 +490,7 @@ const regenerateWebsite = async () => {
 
         <div class="ifYqM">
           <div class="control-horizontal-tabs arrowed tabs-block">
-            <div class="tabs">
+            <div class="tabs" v-if="tabsShow">
               <input type="radio" name="tabs" id="tab1" />
               <label for="tab1"> <i class="fa fa-pencil"></i>Content</label>
               <div class="tab">
@@ -837,6 +778,7 @@ const regenerateWebsite = async () => {
                 </div>
               </div>
             </div>
+              <AddNewSection v-else :categoryId="siteSettingsDeatil?.agency_website_detail.website_category_id" :domain="siteSettingsDeatil?.website_domain" :position="positionForAddSection" @refreshData="getActiveComponentsData" @loading="showloading"/>
           </div>
         </div>
       </div>
@@ -856,287 +798,6 @@ const regenerateWebsite = async () => {
     confirmText="Preview"
     @confirm="openLinkInNewTab(siteSettingsDeatil.website_domain)"
   />
-
-  <!-- <div class="page" id="dasboardPage">
-    <div class="page-main">
-      <div id="wrapper" :class="{ toggled: isSidebarToggled }">
-        <SideBar :dashboardData="dashboardData"></SideBar>
-        <NavBar
-          @logout="logout"
-          @nav-bar-toggle="navBarToggle"
-          :dashboardData="dashboardData?.user"
-        ></NavBar>
-        <div v-if="loadingForComonents">
-          <div class="spinner-container">
-            <div class="spinner-border text-warning" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-        <section v-else id="content-wrapper main-content side-content">
-          <Modal
-            :show-modal="showModal"
-            @update:show-modal="showModal = $event"
-            modal-id="customizeModal"
-            :show-footer="false"
-          >
-            <template #header>
-              <h4 class="modal-title text-center" id="customizeModalLabel">
-                Change {{ capitalizeAndReplaceChar(oldComponentType, "_") }}
-              </h4>
-              <button
-                type="button"
-                class="close"
-                @click="closeModal"
-                data-dismiss="modal"
-              >
-                <span aria-hidden="true">×</span>
-              </button>
-            </template>
-            <div class="testimonial-container">
-              <div
-                v-for="(
-                  allComponentValue, index
-                ) in allComponentsDetailAccToType"
-                :key="index"
-                class="testimonial"
-                :class="{
-                  flagWiseImg:
-                    selectedImage === allComponentValue.component_unique_id,
-                }"
-                @click="
-                  showSelectedComponent(
-                    allComponentValue.component_unique_id,
-                    config.CRM_API_URL + '/' + allComponentValue.preview
-                  )
-                "
-              >
-                <div
-                  class=""
-                  :class="{
-                    imageContainer:
-                      allComponentValue.component_unique_id === oldComponent,
-                  }"
-                >
-                  <img
-                    :src="config.CRM_API_URL + '/' + allComponentValue.preview"
-                    alt="Dynamic"
-                    class="testimonialImg"
-                    :class="{
-                      'disabled-image':
-                        allComponentValue.component_unique_id === oldComponent,
-                    }"
-                  />
-                </div>
-              </div>
-            </div>
-          </Modal>
-          <Modal
-            :show-modal="showEditComponentFieldModal"
-            @update:show-modal="showEditComponentFieldModal = $event"
-            modal-id="customizeModal"
-            :show-footer="false"
-          >
-            <template #header>
-              <h4 class="modal-title text-center" id="customizeModalLabel">
-                {{
-                  capitalizeAndReplaceChar(componentsFieldsUnderEdit.type, "_")
-                }}
-                Settings
-              </h4>
-              <button
-                type="button"
-                class="close"
-                @click="closeModal"
-                data-dismiss="modal"
-              >
-                <span aria-hidden="true">×</span>
-              </button>
-            </template>
-            <EditSiteSettingsFormBuilder
-              :siteSettingsFormFields="siteSettingsFormFields"
-              @submit-custom-fields="submitCustomFields"
-            />
-            <div v-if="loading">
-              <div class="spinner-container">
-                <div class="spinner-border text-warning" role="status">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-              </div>
-            </div>
-          </Modal>
-          <Modal
-            :show-modal="showEditMupltipleImagesModal"
-            @update:show-modal="showEditMupltipleImagesModal = $event"
-            modal-id="customizeModal"
-            :show-footer="false"
-          >
-            <template #header>
-              <h4 class="modal-title text-center" id="customizeModalLabel">
-                {{
-                  capitalizeAndReplaceChar(componentsFieldsUnderEdit.type, "_")
-                }}
-                Settings
-              </h4>
-              <button
-                type="button"
-                class="close"
-                @click="closeModal"
-                data-dismiss="modal"
-              >
-                <span aria-hidden="true">×</span>
-              </button>
-            </template>
-            <div class="testimonial-container">
-              <div
-                v-for="(allComponentImage, index) in componentImagesAcctoType"
-                :key="index"
-                class="testimonial"
-              >
-                <div>
-                  <img
-                    :src="allComponentImage.value"
-                    alt="Dynamic"
-                    class="testimonialImg"
-                  />
-                  <button
-                    @click="
-                      deleteComponentImageConfirmShow(allComponentImage.value)
-                    "
-                    style="
-                      position: absolute;
-                      background: white;
-                      border: none;
-                      cursor: pointer;
-                    "
-                    class="ml-2"
-                  >
-                    &#10006;
-                  </button>
-                </div>
-              </div>
-            </div>
-            <form @submit.prevent="submitForm" enctype="multipart/form-data">
-              <input
-                type="file"
-                ref="fileInput"
-                multiple
-                @change="handleFileUpload"
-              />
-
-              <div v-if="uploadedFiles?.length > 0">
-                <h4 class="mt-2">Selected Files:</h4>
-                <ul>
-                  <li v-for="(file, index) in uploadedFiles" :key="index">
-                    <img
-                      :src="getImageUrl(file)"
-                      alt="Uploaded Image"
-                      width="200"
-                      class="mb-3"
-                    />
-                    <button
-                      @click="removeFile(index)"
-                      style="
-                        position: absolute;
-                        background: white;
-                        border: none;
-                        cursor: pointer;
-                      "
-                      class="ml-2"
-                    >
-                      &#10006;
-                    </button>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                type="submit"
-                :disabled="
-                  uploadedFiles.length <= 0 || disableImageSubmitButton
-                "
-                class="btn btn-success mt-4 me-2"
-              >
-                Submit
-              </button>
-            </form>
-            <div v-if="loading">
-              <div class="spinner-container">
-                <div class="spinner-border text-warning" role="status">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-              </div>
-            </div>
-          </Modal>
-          <div class="side-app">
-            <div class="main-container container-fluid">
-              <div class="row">
-                <VueDraggableNext
-                  class="dragArea list-group w-full"
-                  :list="activeComponentsDetail"
-                  @end="onEndComponentPosition"
-                  @start="onStartComponentPosition"
-                  dragClass="dragItem"
-                  ghostClass="dropHere"
-                >
-                  <div
-                    v-for="(compValue, index) in activeComponentsDetail"
-                    :key="index"
-                    class="image-container"
-                  >
-                    <img
-                      :src="config.CRM_API_URL + compValue.preview"
-                      alt="Dynamic"
-                      width="800"
-                      :class="{
-                        dragItem: compValue.dragging,
-                      }"
-                    />
-                    <div class="button-container">
-                      <button
-                        class="btn btn-primary custom-button image-button me-2"
-                        @click="openModal(compValue.type, compValue.id)"
-                      >
-                        Change
-                      </button>
-                      <button
-                        class="btn btn-primary custom-button image-button me-2"
-                        @click="
-                          handleEditComponentBtnClick(
-                            compValue.id,
-                            compValue.type
-                          )
-                        "
-                      >
-                        Edit
-                      </button>
-                      <button
-                        class="btn btn-primary custom-button image-button"
-                        @click="
-                          handleEditImagesModal(compValue.id, compValue.type)
-                        "
-                      >
-                        Edit Images
-                      </button>
-                    </div>
-                  </div>
-                </VueDraggableNext>
-              </div>
-
-              <button
-                type="button"
-                v-if="saveComponentPositionBtn"
-                @click="saveComponentPosition"
-                class="btn btn-success mt-4 me-2"
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  </div> -->
 </template>
 <style>
 
