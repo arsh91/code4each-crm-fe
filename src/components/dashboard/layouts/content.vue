@@ -8,6 +8,9 @@ import { useStore } from "@/stores/store";
 import { useForm } from "vee-validate";
 import Loader from "@/components/common/Loader.vue";
 
+
+
+
 const allErrors = ref({});
 
 const props = defineProps({
@@ -79,7 +82,65 @@ const emptyForm = () => {
   values.value.message = "";
   values.value.title = "";
 };
-</script>
+
+const handleSubmission = async (paymentId) => {
+  try {
+    const response = await WordpressService.subscriptionPayment(paymentId);
+    if (response.status === 200 && response.data.success) {
+      console.log("Payment submitted successfully.");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+
+
+
+onMounted(() => {
+  // Check if subscription ID exists
+  const subscriptionId = "sub_OAmp8S9yyT40lY"; // Replace with your logic to get the subscription ID
+  if (!subscriptionId) {
+    alert("Subscription ID not found. Please check again.");
+    return; // Exit function if subscription ID does not exist
+  }
+  const options = {
+    "key": "rzp_test_3kOO5za17PvQpv",
+    "amount": "150000", // 2000 paise = INR 20
+    "name": "Merchant Name",
+    "subscription_id": "sub_OAmp8S9yyT40lY",
+    "description": "Subscription Payment",
+    "image": "/your_logo.png",
+    "handler": function (response){
+      const paymentId = response.razorpay_payment_id;
+      alert("Payment successful. Payment ID: " + paymentId);
+      handleSubmission(paymentId);
+    },
+    "prefill": {
+      "name": "Gaurav Kumar",
+      "email": "test@test.com",
+      "contact": "7838841198" 
+    },
+    "notes": {
+      "address": "Hello World",
+      "subscription_id": subscriptionId 
+    },
+    "theme": {
+      "color": "#F37254"
+    }
+  };
+  const rzp1 = new Razorpay(options);
+  document.addEventListener('click', function(event) {
+    if (event.target && event.target.id === 'rzp-button1') {
+      rzp1.open();
+      event.preventDefault(); // Fix variable name 'e' to 'event'
+    }
+  });
+});
+
+
+
+
+</script> 
 <template>
   <Loader v-if="loading" />
   <section v-else id="content-wrapper main-content side-content">
@@ -112,11 +173,10 @@ const emptyForm = () => {
                         }}
                       </h3>
                     </div>
-                    <!-- <div class="subscription-form-side">
-                      <a class="subscription-btn" style="cursor: pointer"
-                        ><i class="fa fa-paypal"></i> Payment
+                    <div class="subscription-form-side">
+                      <a class="subscription-btn" style="cursor: pointer" id="rzp-button1"><i class="fa fa-paypal"></i> Payment
                       </a>
-                    </div> -->
+                    </div>
                   </div>
                 </div>
               </div>
@@ -299,3 +359,6 @@ const emptyForm = () => {
   height: 3rem;
 }
 </style>
+
+
+
