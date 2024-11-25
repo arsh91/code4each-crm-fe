@@ -181,6 +181,15 @@ const WordpressService = {
     changePosition: (data) => {
       return requests(baseUrl).post(`/change-menu-position`, data)
     },
+  },
+
+  Payment: {
+    fetchPlans: (data) => {
+      return requests(baseUrl).get(`/get-plans`)
+    },
+    createOrder: (data) => {
+      return requests(baseUrl).post(`/create-order`, data)
+    },
   }
 
 
