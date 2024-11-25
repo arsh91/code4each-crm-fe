@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, watch, onMounted } from "vue";
+import { ref, defineProps, watch, onMounted, computed } from "vue";
 import Alert from "../elements/Alert.vue";
 import WordpressService from "@/service/WordpressService";
 import AgencyDetailModal from "../elements/AgencyDetailModal.vue";
@@ -7,6 +7,9 @@ import SiteSettings from "@/views/SiteSettings.vue";
 import { useStore } from "@/stores/store";
 import { useForm } from "vee-validate";
 import Loader from "@/components/common/Loader.vue";
+
+
+
 
 const allErrors = ref({});
 
@@ -25,8 +28,17 @@ const store = useStore();
 const values = ref({
   type: "",
 });
+const planDetail = ref({
+  price: "",
+  gst:"",
+  total:"",
+  razorPayId: ""
+});
+
+const plans = ref();
+const isYearly = ref(false);
 const errorMessage = ref("");
-const feedBackloading = ref(false);
+const planLoading = ref(false);
 allErrors;
 watch(
   () => props.dashboardData,
@@ -39,6 +51,7 @@ watch(
 );
 
 onMounted(() => {
+  fetchPlans();
   allDashboardData.value = props.dashboardData;
   allErrors.value = {};
 });
@@ -54,7 +67,26 @@ const openModalWithCategories = async () => {
     console.error(error);
   }
 };
+const planDetailModalShow = ref(false);
 
+const hidePlanDeatilModal = () => {
+  planDetailModalShow.value = false;
+  // feedbackValues.value = {};
+};
+const initiatePayment = (plan) => {
+  planDetailModalShow.value = true
+  const amount = Number(plan.price);
+  const gst = amount * 0.18;
+  const totalPrice = amount + gst;
+  planDetail.value.price = amount;
+  planDetail.value.gst = gst;
+  planDetail.value.total = totalPrice;
+  planDetail.value.razorPayId = plan.razor_id
+}
+
+const filteredPlans = computed(() => {
+  return plans.value.filter(plan => plan.type === (isYearly.value ? 'yearly' : 'monthly'));
+});
 const updateSite = (website_id) => {
   store.updateWebsiteId(website_id);
   deatilModalShow.value = true;
@@ -79,7 +111,79 @@ const emptyForm = () => {
   values.value.message = "";
   values.value.title = "";
 };
-</script>
+
+
+const handleSubmission = async (response) => {
+  try {
+    const response = await WordpressService.subscriptionPayment(response);
+    if (response.status === 200 && response.data.success) {
+      console.log("Payment submitted successfully.");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+
+const submitPlayment = async(oderId) => {
+  let userData = allDashboardData.value?.user
+  console.log(userData)
+  const options = {
+    "key": "rzp_test_3kOO5za17PvQpv",
+    "name": userData.name,
+    'order_id': oderId,
+    "description": "Payment",
+    // "image": "/your_logo.png",
+    "handler": function (response){
+      const paymentId = response.razorpay_payment_id;
+      handleSubmission(response);
+    },
+    "prefill": {
+      "name": userData.name,
+      "email": userData.email,
+      "contact": userData.phone == "Na"?  "":  userData?.phone
+    },
+    "notes": {
+      "address": allDashboardData.value?.agency?.address,
+      "order_id": 'subscriptionId' 
+    },
+    "theme": {
+      "color": "#F37254"
+    }
+  };
+  const rzp1 = new Razorpay(options);
+  rzp1.open();
+};
+
+const createOrder = async(palnRazorId) => {
+  try {
+    planLoading.value = true
+    const response = await WordpressService.Payment.createOrder({
+      plan_id: palnRazorId
+    });
+    if (response.status === 200 ) {
+     await submitPlayment(response.data.order_id)
+    }
+    // await submitPlayment('order_OkhSuNKhU3qxd7') 
+  } catch (error) {
+    console.error("Error:", error);
+  } 
+  planLoading.value = false
+  planDetailModalShow.value = false
+
+};
+
+const fetchPlans = async (paymentId) => {
+  try {
+    const response = await WordpressService.Payment.fetchPlans()
+    // if (response.status === 200 && response.data.success) {
+    plans.value = response.data?.plans
+    // }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+
+</script> 
 <template>
   <Loader v-if="loading" />
   <section v-else id="content-wrapper main-content side-content">
@@ -97,7 +201,7 @@ const emptyForm = () => {
             class="speedy-subscription bg-white"
           >
             <div class="container">
-              <div class="row">
+              <!-- <div class="row">
                 <div class="col-lg-12">
                   <div class="speedy-subscription-wrapper">
                     <div class="subscription-text-side">
@@ -112,16 +216,79 @@ const emptyForm = () => {
                         }}
                       </h3>
                     </div>
-                    <!-- <div class="subscription-form-side">
-                      <a class="subscription-btn" style="cursor: pointer"
-                        ><i class="fa fa-paypal"></i> Payment
+                    <div class="subscription-form-side">
+                      <a class="subscription-btn" style="cursor: pointer" id="rzp-button1"><i class="fa fa-paypal"></i> Payment
                       </a>
-                    </div> -->
+                    </div>
                   </div>
                 </div>
+              </div> -->
+            
+              <!-- <div class="row">
+      <div class="col-lg-6" v-for="plan in filteredPlans" :key="plan.id">
+        <div class="speedy-subscription-wrapper">
+          <div class="subscription-text-side">
+            <h3 class="subscription-heading">
+              {{ plan.name }}
+            </h3>
+            <p>{{ plan.description }}</p>
+            <p>{{ plan.price }} INR</p>
+          </div>
+          <div class="subscription-form-side">
+            <a
+              class="subscription-btn"
+              style="cursor: pointer"
+              @click="initiatePayment(plan)"
+            >
+              <i class="fa fa-paypal"></i> Payment
+            </a>
+          </div>
+        </div>
+      </div>
+    </div> -->
+            </div>
+        
+          </section>
+          <label>
+      <input type="checkbox" v-model="isYearly"  class="me-1"/>
+      <span> {{ isYearly ? 'Yearly' : 'Monthly' }} Plans</span>
+    </label>
+    <template v-if="filteredPlans.length > 0">
+        <section  v-for="plan in filteredPlans" :key="plan.id" class="speedy-subscription bg-white" style="width: 55%"
+>
+          <div class="container">
+          <!-- <div class="row"> -->
+                <div class="col-lg-12">
+                  <div class="speedy-subscription-wrapper">
+                    <div class="subscription-text-side">
+                      <h3 class="subscription-heading">
+                        {{ plan.name }}
+                      </h3>
+                      <p>{{ plan.description }}</p>
+                      <p>{{ plan.price }} INR</p>
+                    </div>
+                    <div class="subscription-form-side">
+                      <a class="subscription-btn" style="cursor: pointer" @click="initiatePayment(plan)"><i class="fa fa-paypal"></i> Payment
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              <!-- </div> -->
+            </div>
+
+            </section>
+          </template>
+          <section v-else  class="speedy-subscription bg-white" >
+          <div class="container">
+            <div class="col-lg-12">
+              <div class="no-plans-wrapper">
+                <h3>No {{ isYearly ? 'Yearly' : 'Monthly' }} Plans Available</h3>
+                <p>Please check back later.</p>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
+
           <div class="page-header">
             <ol class="breadcrumb">
               <!-- breadcrumb -->
@@ -272,6 +439,68 @@ const emptyForm = () => {
       </div>
     </div>
   </section>
+  <div v-if="planDetailModalShow" class="modal-backdrop fade show"></div>
+<div
+    class="modal feedback-model fade"
+    id="modalContactForm"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="Feedback SpeedySites"
+    aria-hidden="true"
+    :class="{ show: planDetailModalShow, 'd-block': planDetailModalShow }"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header" style="border: 0">
+          <button
+            type="button"
+            class="btn-close"
+            @click="hidePlanDeatilModal"
+            aria-hidden="true"
+          ></button>
+        </div>
+        <div class="modal-body mx-3">
+          <div class="card-layout layout-medium">
+            <div class="content">
+              <div class="close-button"></div>
+
+              <h1 class="title">Plan Detail</h1>
+              <p data-error="wrong" data-success="right" for="form34"
+                >Amount : {{ planDetail.price }}</p
+              >
+              <p data-error="wrong" data-success="right" for="form34"
+                >GST(18%) : {{ planDetail.gst }}</p
+              >
+              <p data-error="wrong" data-success="right" for="form34"
+                >Total Amount : {{ planDetail.total }}</p
+              >
+             
+              <div class="user-actions">
+                <div v-if="planLoading" class="three-body3">
+                  <div class="three-body__dot1"></div>
+                  <div class="three-body__dot1"></div>
+                  <div class="three-body__dot1"></div>
+                </div>
+                <button class="feedback-btn-primary" @click="createOrder(planDetail.razorPayId)">
+                  Send
+                </button>
+
+                <button
+                  class="feedback-btn-outline"
+                  data-dismiss="modal"
+                  aria-hidden="true"
+                  :disabled=planLoading
+                  @click="hidePlanDeatilModal"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <SiteSettings />
   <AgencyDetailModal
     :showModal="showModal"
@@ -299,3 +528,6 @@ const emptyForm = () => {
   height: 3rem;
 }
 </style>
+
+
+

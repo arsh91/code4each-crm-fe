@@ -8,6 +8,9 @@ const WordpressService = {
   loginUser: (data) => {
     return requests(baseUrl).post(`/login`, data)
   },
+  subscriptionPayment: (data) => {
+    return requests(baseUrl).post(`/subscriptionPayment`, data)
+  },
   fetchDashboardData: (data) => {
     return requests(baseUrl).get(`/dashboard`)
   },
