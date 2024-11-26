@@ -32,7 +32,8 @@ const planDetail = ref({
   price: "",
   gst:"",
   total:"",
-  razorPayId: ""
+  razorPayId: "",
+  id:""
 });
 
 const plans = ref();
@@ -44,6 +45,7 @@ watch(
   () => props.dashboardData,
   (newDashboardData, OldDashboardData) => {
     allDashboardData.value = props.dashboardData;
+    console.log('aaa',allDashboardData)
   },
   {
     deep: true,
@@ -82,6 +84,8 @@ const initiatePayment = (plan) => {
   planDetail.value.gst = gst;
   planDetail.value.total = totalPrice;
   planDetail.value.razorPayId = plan.razor_id
+  planDetail.value.id = plan.id
+
 }
 
 const filteredPlans = computed(() => {
@@ -113,9 +117,16 @@ const emptyForm = () => {
 };
 
 
-const handleSubmission = async (response) => {
+const handleSubmission = async (responseh, plan_id) => {
   try {
-    const response = await WordpressService.subscriptionPayment(response);
+    
+    responseh.plan_id = plan_id; 
+    responseh.user_id = allDashboardData.value?.user.id; 
+    responseh.agency_id = allDashboardData.value?.user.agency_id; 
+    responseh.website_id = allDashboardData.value?.user.agency.agency_websites[0].website_detail.id; 
+    console.log("Updated response:", responseh);
+
+    const response = await WordpressService.subscriptionPayment(responseh);
     if (response.status === 200 && response.data.success) {
       console.log("Payment submitted successfully.");
     }
@@ -124,7 +135,7 @@ const handleSubmission = async (response) => {
   }
 };
 
-const submitPlayment = async(oderId) => {
+const submitPlayment = async(oderId, plan_id) => {
   let userData = allDashboardData.value?.user
   console.log(userData)
   const options = {
@@ -132,10 +143,8 @@ const submitPlayment = async(oderId) => {
     "name": userData.name,
     'order_id': oderId,
     "description": "Payment",
-    // "image": "/your_logo.png",
     "handler": function (response){
-      const paymentId = response.razorpay_payment_id;
-      handleSubmission(response);
+      handleSubmission(response, plan_id);
     },
     "prefill": {
       "name": userData.name,
@@ -156,12 +165,13 @@ const submitPlayment = async(oderId) => {
 
 const createOrder = async(palnRazorId) => {
   try {
+    console.log('ppppp',palnRazorId)
     planLoading.value = true
     const response = await WordpressService.Payment.createOrder({
       plan_id: palnRazorId
     });
     if (response.status === 200 ) {
-     await submitPlayment(response.data.order_id)
+     await submitPlayment(response.data.order_id, palnRazorId)
     }
     // await submitPlayment('order_OkhSuNKhU3qxd7') 
   } catch (error) {
@@ -481,7 +491,7 @@ const fetchPlans = async (paymentId) => {
                   <div class="three-body__dot1"></div>
                   <div class="three-body__dot1"></div>
                 </div>
-                <button class="feedback-btn-primary" @click="createOrder(planDetail.razorPayId)">
+                <button class="feedback-btn-primary" @click="createOrder(planDetail.id)">
                   Send
                 </button>
 
