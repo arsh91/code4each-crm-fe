@@ -131,6 +131,7 @@ const handleSubmission = async (responseh, plan_id) => {
     const response = await WordpressService.subscriptionPayment(responseh);
     if (response.status === 200 && response.data.success) {
       console.log("Payment submitted successfully.");
+      
       store.updateFlashMeassge(true, "Payment successful!");
     }
   } catch (error) {
