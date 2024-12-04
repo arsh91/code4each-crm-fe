@@ -28,7 +28,11 @@ const openModalWithCategories = async () => {
       error.response.status === 403 &&
       error.response.data.message === "Your email address is not verified."
     ) {
-      Swal.fire("Please Verify Your Email to Proceed Further");
+      Swal.fire(
+        "Done!",
+        "Please Verify Your Email to Proceed Further!",
+        "success"
+      );
     }
   }
 };

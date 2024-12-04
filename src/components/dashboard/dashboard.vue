@@ -7,7 +7,11 @@ import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import { ref, defineProps, onMounted, provide, inject } from "vue";
 import WordpressService from "@/service/WordpressService";
+import FlashMessage from "@/components/common/FlashMessage.vue";
 import { EventBus } from "@/EventBus";
+import { useStore } from "@/stores/store";
+
+const store = useStore();
 
 const router = useRouter();
 const { logout } = useAuth();
@@ -52,10 +56,13 @@ const resendLink = async () => {
   }
 };
 
-onMounted(() => {
-  fetchDashboardData();
+const loadingOnOff = async (value) => {
+  loading.value = value;
+};
+onMounted(async () => {
+  await fetchDashboardData();
   EventBus.on("fetchDashboardData", fetchDashboardData);
-  EventBus.on("getGlobalColors", getGlobalColors);
+  EventBus.on("loadingOnOff", loadingOnOff);
 });
 
 const regenerateWebsite = async () => {
@@ -65,52 +72,38 @@ const regenerateWebsite = async () => {
       agency_id: dashboardData.value.user.agency_id,
       website_url: dashboardData.value.agency_website_info[0].website_domain,
     });
-
-    fetchDashboardData();
-    EventBus.emit("reloadIframe");
+    await fetchDashboardData();
   } catch (error) {
     console.log(error);
     console.error("Error Occur while regenerating website", error);
   }
+  EventBus.emit("reloadIframe");
   loading.value = false;
 };
 
-const getGlobalColors = async () => {
-  let globalColors = [];
-  try {
-    const response = await WordpressService.getGlobalColors();
-    console.log(response.data, "rrrrrrrrrrrrrrrrr");
-    if (response.status === 200 && response.data.success) {
-      globalColors = response.data;
-    }
-  } catch (error) {
-    console.log(error);
-    console.error("Error Occur while getting global colors", error);
-  }
-  return globalColors;
-};
-provide("dashBoardMethods", { regenerateWebsite, fetchDashboardData });
+provide("dashBoardMethods", {
+  regenerateWebsite,
+  fetchDashboardData,
+});
 </script>
 
 <template>
-  <div class="page" id="dasboardPage">
-    <div class="page-main">
-      <div id="wrapper" :class="{ toggled: isSidebarToggled }">
-        <SideBar></SideBar>
-        <NavBar
-          @logout="logout"
-          @nav-bar-toggle="navBarToggle"
-          :dashboardData="dashboardData?.user"
-        ></NavBar>
-        <Content
-          :dashboardData="dashboardData"
-          :loading="loading"
-          :resendLink="resendLink"
-        ></Content>
-      </div>
-    </div>
+  <div class="page">
+    <FlashMessage :visible="store.flashMeassge" v-if="store.flashMeassge" />
+    <NavBar
+      @logout="logout"
+      @nav-bar-toggle="navBarToggle"
+      :dashboardData="dashboardData?.user"
+    ></NavBar>
+    <SideBar
+      :dashboardData="dashboardData"
+      :toggled="isSidebarToggled"
+    ></SideBar>
+
+    <Content
+      :dashboardData="dashboardData"
+      :loading="loading"
+      :resendLink="resendLink"
+    ></Content>
   </div>
 </template>
-<style>
-@import "../../assets/dashboard.css";
-</style>

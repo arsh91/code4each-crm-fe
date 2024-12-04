@@ -1,0 +1,128 @@
+:root {
+    --c4e-black: #0a0d13;
+    --c4e-primaryColor-2: #9abc66;
+    --c4e-primaryColor-1: #ebf0f5;
+    --c4e-primaryColor-3: #88b04b;
+    --c4e-primaryColor-4: #404f5e;
+    --c4e-primaryColor-5: #c8d0d8;
+    --c4e-white: #fff;
+    --c4e-font-family: 'Poppins', sans-serif;
+}
+
+
+
+section.mail-verfication {
+    display: flex;
+    justify-content: center;
+    margin: 0px auto;
+    background: var(--c4e-primaryColor-1);
+    text-align: center;
+    padding: 40px 0;
+
+}
+
+.mail-verfication h1 {
+    color: var(--c4e-primaryColor-3);
+    font-family: var(--c4e-font-family);
+    font-weight: 900;
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.mail-verfication p {
+    color: var(--c4e-primaryColor-4);
+    font-family: var(--c4e-font-family);
+    font-size: 20px;
+    margin: 0;
+}
+
+.mail-verfication i {
+    color: var(--c4e-primaryColor-2);
+    font-size: 100px;
+    line-height: 200px;
+    margin-left: -15px;
+}
+
+.mail-verfication .card {
+    background: white;
+    padding: 60px;
+    border-radius: 4px;
+    box-shadow: 0 2px 3px var(--c4e-primaryColor-5);
+    display: inline-block;
+    margin: 0 auto;
+    min-height: 40px;
+}
+
+.mail-verfication .btn {
+    color: #fff;
+    border-radius: 4px;
+    background: #82ce34;
+    text-decoration: none;
+    transition: all 0.4s;
+    line-height: normal;
+    border: none;
+    margin-top: 25px;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+.mail-error {
+    display: flex;
+    justify-content: center;
+    margin: 0px auto;
+    background: var(--c4e-primaryColor-1);
+    text-align: center;
+    padding: 40px 0;
+}
+
+.mail-error h1 {
+    color: #d8000c;
+    font-family: var(--c4e-font-family);
+    font-weight: 700;
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.mail-error p {
+    color: var(--c4e-primaryColor-4);
+    font-family: var(--c4e-font-family);
+    font-size: 20px;
+    margin: 0;
+}
+
+.mail-error i {
+    color: #D8000C;
+    font-size: 100px;
+    line-height: 200px;
+
+}
+
+.mail-error .card {
+    background: white;
+    padding: 60px;
+    border-radius: 4px;
+    box-shadow: 0 2px 3px var(--c4e-primaryColor-5);
+    display: inline-block;
+    margin: 0 auto;
+    min-height: 40px;
+}
+
+.mail-error .btn {
+    color: #fff;
+    border-radius: 4px;
+    background: #D8000C;
+    text-decoration: none;
+    transition: all 0.4s;
+    line-height: normal;
+    border: none;
+    margin-top: 25px;
+    padding: 10px 0px;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+}

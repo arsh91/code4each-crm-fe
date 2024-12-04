@@ -4,7 +4,7 @@ import WordpressService from '@/service/WordpressService';
 
 
 export function useAuth() {
-const router = useRouter();
+  const router = useRouter();
 
   const isAuthenticated = ref(!!localStorage.getItem('access_token'));
 
@@ -17,7 +17,7 @@ const router = useRouter();
 
     localStorage.removeItem('access_token');
     isAuthenticated.value = false;
-    router.push('/login');
+    router.push('/');
     // Redirect or perform necessary actions after logout
   };
 

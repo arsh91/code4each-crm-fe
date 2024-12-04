@@ -118,6 +118,12 @@
     color: #34c39f;
 }
 
+.sidebar-nav>li li>a:hover,
+.sidebar-nav>li li.active>a {
+    text-decoration: none;
+    color: #34c39f;
+}
+
 #dasboardPage .sidebar-nav>li>a i.fa {
     font-size: 20px;
     width: 50px;

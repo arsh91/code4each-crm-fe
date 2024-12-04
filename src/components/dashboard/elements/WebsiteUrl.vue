@@ -1,7 +1,8 @@
 <script setup>
-import { ref, inject, onMounted, provide } from "vue";
+import { ref, inject, onMounted, provide, watch } from "vue";
 import { copyTextToClipboard } from "@/util/helper";
 import { EventBus } from "@/EventBus.js";
+import WordpressService from "@/service/WordpressService";
 
 const dashBoardMethods = inject("dashBoardMethods");
 const props = defineProps({
@@ -9,18 +10,29 @@ const props = defineProps({
 });
 const submittedColors = ref([]);
 const tooltipText = ref("copy");
+const colorItems = ref();
 
-const colorItems = ref([
-  { name: "primary_color_1", color: "#ff0000" },
-  { name: "primary_color_2", color: "#00ff00" },
-  { name: "primary_color_3", color: "#0000ff" },
-]);
-
-function submitColors() {
-  submittedColors.value = Object.fromEntries(
-    colorItems.value.map((item) => [item.name, item.color])
-  );
-}
+const submitColors = async () => {
+  EventBus.emit("loadingOnOff", true);
+  try {
+    const transformedObject = colorItems.value.reduce((result, item) => {
+      result[item.name] = item.color;
+      return result;
+    }, {});
+    const response = await WordpressService.updateGlobalColors({
+      website_url: props.websiteData[0].website_domain,
+      colors: transformedObject,
+    });
+    if (response.status === 200 && response.data.success) {
+      getGlobalColors();
+      reloadIframe();
+    }
+  } catch (error) {
+    console.log(error);
+    console.error("Error Occur while getting global colors", error);
+  }
+  EventBus.emit("loadingOnOff", false);
+};
 
 const openLinkInNewTab = () => {
   const url = props.websiteData[0].website_domain;
@@ -40,14 +52,31 @@ const websiteIframe = ref();
 const reloadIframe = () => {
   websiteIframe.value.src = websiteIframe.value.src;
 };
+
+const getGlobalColors = async () => {
+  try {
+    const response = await WordpressService.getGlobalColors({
+      website_url: props.websiteData[0].website_domain,
+    });
+
+    if (response.status === 200 && response.data.success) {
+      let allColors = response.data.colors;
+      colorItems.value = Object.keys(allColors).map((key) => ({
+        name: key,
+        color: allColors[key],
+      }));
+    }
+  } catch (error) {
+    console.log(error);
+    console.error("Error Occur while getting global colors", error);
+  }
+};
 onMounted(() => {
+  getGlobalColors();
+  reloadIframe();
   EventBus.on("reloadIframe", reloadIframe);
-  console.log("shdjs");
-  EventBus.emit("getGlobalColors", (result) => {
-    // Handle the result here
-    console.log("Received result from child component:", result);
-  });
 });
+
 provide("reloadIframe", "reloadIframe");
 </script>
 <template>
@@ -64,11 +93,11 @@ provide("reloadIframe", "reloadIframe");
               <div class="img-wrapper">
                 <iframe
                   ref="websiteIframe"
-                  v-if="websiteData['0']?.website_domain"
+                  v-if="websiteData.length >= 1"
                   class="websiteLinkFrame"
                   height="450"
                   frameborder="0"
-                  :src="websiteData['0'].website_domain"
+                  :src="websiteData[0].website_domain"
                 ></iframe>
                 <img v-else src="/images/wordpres.png" />
               </div>
@@ -138,19 +167,27 @@ provide("reloadIframe", "reloadIframe");
         <div class="mt-3">
           <div class="d-flex">
             <div
-              v-for="(item, index) in colorItems"
-              :key="index"
+              v-for="colorItem in colorItems"
+              :key="colorItem.name"
               class="colorPickerInputs"
             >
               <input
-                :type="item.type || 'color'"
-                :id="`colorPicker_${index}`"
-                v-model="item.color"
+                :type="'color'"
+                v-model="colorItem.color"
                 class="me-2 ms-4"
                 style="height: 20px; width: 20px"
               />
-              <label :for="`colorPicker_${index}`">{{ item.name }}</label>
+              <label :for="colorItem.name">{{ colorItem.name }}</label>
             </div>
+
+            <!-- <div v-for="colorItem in colorItems" :key="colorItem.name">
+              <label :for="colorItem.name">{{ colorItem.name }}</label>
+              <input
+                :id="colorItem.name"
+                v-model="colorItem.color"
+                type="color"
+              />
+            </div> -->
             <button
               @click="submitColors"
               class="btn btn-success me-4 mt-1 mb-1"

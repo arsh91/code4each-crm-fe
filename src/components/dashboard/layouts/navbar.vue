@@ -1,92 +1,149 @@
 <script setup>
-import { defineEmits, ref,defineProps } from 'vue';
+import { defineEmits, ref, defineProps, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "@/stores/store";
+
+const router = useRouter();
 
 const emits = defineEmits();
-const isSidebarToggled = ref(false);
+const isSidebarToggled = ref(true);
+const showUserMenu = ref(false);
+const store = useStore();
 
 const toggleSidebar = () => {
-    isSidebarToggled.value = !isSidebarToggled.value;
-    emits('nav-bar-toggle', isSidebarToggled.value);
+  store.updateShrink();
 };
-const logout = () => {
-    emits('logout');
-}
 
+const logout = () => {
+  emits("logout");
+};
+
+const navigate = () => {
+  router.push("/");
+};
 const props = defineProps({
   dashboardData: Object,
 });
-// consol(props.dashboardData);
-
 </script>
 <template>
-      <div id="navbar-wrapper">
-            <nav class="navbar navbar-inverse">
-              <div class="container-fluid">
-                <div class="navbar-header main-header-left">
-                    <a href="javascript:void(0)" class="navbar-brand" id="sidebar-toggle" @click="toggleSidebar">
-                        <i class="fa fa-align-left"></i>
-                    </a>
-                </div>
-                <div class="main-header-right">
-                  <button class="navbar-toggler navresponsive-toggler d-lg-none ms-auto collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent-4" aria-controls="navbarSupportedContent-4" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon fa fa-ellipsis-v"></span>
-                  </button>
-                  <div class="navbar navbar-expand-lg navbar-collapse responsive-navbar p-0">
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent-4">
-                      <ul class="nav nav-item header-icons navbar-nav-right ms-auto">
-                        <!-- Country-selector-->
-                        <li class="dropdown header-search">
-                          <a class="nav-link icon header-search" data-bs-toggle="dropdown" href="javascript:void(0);">
-                            <i class="fa fa-search"></i>
-                          </a>
-                          <div class="dropdown-menu">
-                            <div class="main-form-search p-2">
-                              <input class="form-control" placeholder="Search" type="search">
-                              <button class="btn">
-                                <i class="fa fa-search"></i>
-                              </button>
-                            </div>
-                          </div>
-                        </li>
-                        <!-- CART -->
-                        <li class="dropdown profile-1">
-                          <a href="#" data-bs-toggle="dropdown" class="nav-link  leading-none d-flex">
-                            <span>
-                              <img src="/images/15.jpg" alt="profile-user" class="avatar  profile-user brround cover-image">
-                            </span>
-                          </a>
-                          <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                            <div class="drop-heading">
-                              <div class="text-center">
-                                <h5 class="text-dark mb-0">{{dashboardData?.name}}</h5>
-                                <small class="text-muted">{{dashboardData?.agency.name}}</small>
-                              </div>
-                            </div>
-                            <div class="dropdown-divider m-0"></div>
-                            <a class="dropdown-item" href="profile.html">
-                              <i class="dropdown-icon fa fa-user"></i> Profile </a>
-                            <a class="dropdown-item" href="settings.html">
-                              <i class="dropdown-icon  fa fa-cog"></i> Settings </a>
-                            <a class="dropdown-item" href="email.html">
-                              <span class="float-end"></span>
-                              <i class="dropdown-icon fa  fa-inbox"></i> Inbox </a>
-                            <a class="dropdown-item" href="emailservices.html">
-                              <i class="dropdown-icon fa fa-comment"></i> Message </a>
-                            <div class="dropdown-divider mt-0"></div>
-                            <a class="dropdown-item" @click="logout">
-                              <i class="dropdown-icon fa fa-sign-in"></i> Sign out </a>
-                          </div>
-                        </li>
-                        <li class="dropdown header-settings">
-                          <a href="javascript:void(0);" class="nav-link icon" data-bs-toggle="sidebar-right" data-bs-target=".sidebar-right">
-                            <i class="fa fa-align-right"></i>
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+  <header class="header">
+    <nav class="navbar navbar-expand-lg px-4 py-2 bg-white shadow">
+      <a
+        class="sidebar-toggler text-gray-500 me-4 me-lg-5 lead sidetoggle-s"
+        @click="toggleSidebar"
+      >
+        <i class="fa fa-align-left"></i>
+      </a>
+      <a
+        class="navbar-brand fw-bold text-uppercase text-base"
+        @click="navigate"
+      >
+        <span class="d-none d-brand-partial">Bubbly </span>
+        <span class="d-none d-sm-inline">
+          <img src="/images/logo-beta.png" />
+        </span>
+      </a>
+      <ul class="ms-auto d-flex align-items-center list-unstyled mb-0">
+        <li class="nav-item  ">
+              <div class="panel-header-title1">
+                
+                <!-- <button type="submit" class="preview-btn"><i class="fa fa-eye" aria-hidden="true"></i> preview</button> -->
               </div>
-            </nav>
+            </li>
+        <li class="nav-item dropdown">
+          <div
+            class="dropdown-menu dropdown-menu-animated text-sm"
+            id="searchDropdownMenu"
+          >
+            <h6 class="dropdown-header text-uppercase fw-normal">
+              Recent pages
+            </h6>
+            <a class="dropdown-item py-1" href="cms-post.html">
+              <i class="far fa-file me-2"></i>Posts
+            </a>
+            <a class="dropdown-item py-1" href="widgets-stats.html">
+              <i class="far fa-file me-2"></i>Widgets
+            </a>
+            <a class="dropdown-item py-1" href="pages-profile.html">
+              <i class="fa fa-file me-2"></i>Profile
+            </a>
+            <div class="dropdown-divider"></div>
+            <h6 class="dropdown-header text-uppercase fw-normal">Users</h6>
+            <a class="dropdown-item py-1" href="pages-profile.html">
+              <img
+                class="avatar avatar-xs p-1 me-2"
+                src="https://d19m59y37dris4.cloudfront.net/bubbly/1-2/img/avatar-0.jpg"
+                alt="Jason Doe"
+              />
+              <span>Jason Doe</span>
+            </a>
+            <a class="dropdown-item py-1" href="pages-profile.html">
+              <img
+                class="avatar avatar-xs p-1 me-2"
+                src="https://d19m59y37dris4.cloudfront.net/bubbly/1-2/img/avatar-1.jpg"
+                alt="Frank Williams"
+              />
+              <span>Frank Williams</span>
+            </a>
+            <a class="dropdown-item py-1" href="pages-profile.html">
+              <img
+                class="avatar avatar-xs p-1 me-2"
+                src="https://d19m59y37dris4.cloudfront.net/bubbly/1-2/img/avatar-2.jpg"
+                alt="Ashley Wood"
+              />
+              <span>Ashley Wood</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <h6 class="dropdown-header text-uppercase fw-normal">Filters</h6>
+            <a class="dropdown-item py-1" href="#!">
+              <span class="badge me-2 badge-success-light">Posts</span>
+              <span class="text-xs">Search all posts</span>
+            </a>
+            <a class="dropdown-item py-1" href="#!">
+              <span class="badge me-2 badge-danger-light">Users</span>
+              <span class="text-xs">Only in users</span>
+            </a>
+            <a class="dropdown-item py-1" href="#!">
+              <span class="badge me-2 badge-warning-light">Campaigns</span>
+              <span class="text-xs">Only in campaigns</span>
+            </a>
           </div>
+        </li>
+        <li class="nav-item dropdown ms-auto">
+          <a
+            class="nav-link pe-0"
+            id="userInfo"
+            href="#"
+            data-bs-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+            @click="showUserMenu = !showUserMenu"
+          >
+            <span class="avatar p-1">
+              {{ dashboardData?.name.charAt(0).toUpperCase() }}</span
+            >
+          </a>
+          <div
+            class="dropdown-menu dropdown-menu-end dropdown-menu-animated"
+            aria-labelledby="userInfo"
+            :class="{ show: showUserMenu }"
+          >
+            <div class="dropdown-header text-gray-700">
+              <h6 class="text-uppercase font-weight-bold">
+                {{ dashboardData?.name }}
+              </h6>
+              <small>{{ dashboardData?.agency.name }}</small>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" @click="logout">Logout</a>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </header>
 </template>
+<style scoped>
+.sidetoggle-s {
+  cursor: pointer;
+}
+</style>

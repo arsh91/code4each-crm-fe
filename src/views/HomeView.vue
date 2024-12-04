@@ -1,14 +1,10 @@
 <script setup>
-import HomeMain from '../components/home/main.vue';
+import HomeMain from "../components/home/main.vue";
 </script>
 
 <template>
-  <main>
-    <div id="homePage">
-    <HomeMain/>
-    </div>
-  </main>
+  <HomeMain />
 </template>
 <style>
-@import '../assets/style.css';
+@import "../assets/style.css";
 </style>
