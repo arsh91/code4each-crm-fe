@@ -150,6 +150,16 @@
             </li>
           </ul>
         </li>
+        <li class="sidebar-list-item">
+                <router-link
+                  :to="{ name: 'plans' }"
+                  class="sidebar-link text-muted"
+                  :class="{ active: currentRoute === '/plans' }"
+                >
+                  <i class="fa fa-credit-card me-3"></i>
+                  <span class="sidebar-link-title"> Plans</span>
+                </router-link>
+              </li>
       </ul>
       <div class="dashboard-design" v-if="currentRoute === '/dashboard'">
         <div class="feedback-btn">

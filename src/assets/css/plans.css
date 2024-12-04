@@ -1,0 +1,134 @@
+/* Pricing Table Info Section */
+.h-pricing-table__info.price h2 {
+  color: #1d2b64;
+  font-size: 3rem;
+  text-align: center;
+  font-weight: bold;
+  margin-top: 100px;
+}
+
+.h-pricing-table__info.price {
+  margin-bottom: 50px;
+}
+
+p.h-pricing-table__description {
+    color: #334151;
+    font-size: 1.7rem;
+    text-align: center;
+    margin: 20px auto;
+}
+
+/* Pricing Card Styles Scoped to .pricing_card */
+.pricing_card .card {
+  border-radius: 15px; /* Rounded corners */
+  overflow: hidden; /* Ensures content stays within rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  background-color: #fff; /* White background for the card */
+  position: relative; /* Ensure positioning for pseudo-element */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth animation */
+}
+
+/* Top Shape Styling (Always Visible) Scoped to .pricing_card */
+.pricing_card .card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 140px;
+  background: linear-gradient(135deg, #1d2b64, #8ebef2);
+  clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+  z-index: 0;
+}
+/* Card Content Styles Scoped to .pricing_card */
+.pricing_card .card-body {
+  position: relative; /* To layer properly over ::before */
+  z-index: 1; /* Content above the shape */
+  text-align: center;
+  padding: 40px 20px;
+}
+
+/* Card Hover Effect Scoped to .pricing_card */
+.pricing_card .card:hover {
+  transform: translateY(-10px) scale(1.05); /* Lift and enlarge slightly */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Add a stronger shadow */
+  cursor: pointer; /* Change cursor to pointer */
+}
+
+/* Card Title Scoped to .pricing_card */
+.pricing_card .card-title {
+  font-size: 2.0rem;
+  line-height: 45px;
+  font-weight: bold;
+  margin-bottom: 60px;
+  color: #fff;
+  margin-top: 4px;
+}
+/* Card Price Scoped to .pricing_card */
+.pricing_card .card-price {
+  font-size: 3.5rem;
+  font-weight: bold;
+  color: #1d2b64;
+  margin-bottom: 0px;
+}
+
+/* List of Features Scoped to .pricing_card */
+.pricing_card .card ul {
+  list-style: none; /* Remove bullets */
+  padding: 0; /* Remove padding */
+  margin: 0 0 20px; /* Space below the list */
+}
+
+.pricing_card .card ul li {
+  font-size: 1.2rem;
+  color: #555; /* Subtle dark color for features */
+  margin: 5px 0;
+}
+
+.pricing_card .card ul li i {
+  color: #28a745; /* Green for check icons */
+  margin-right: 10px; /* Space after the icon */
+}
+
+/* Button Styles Scoped to .pricing_card */
+.pricing_card .card .btn {
+  font-size: 1rem; /* Standard button text size */
+  padding: 10px 20px; /* Add padding */
+  border-radius: 25px; /* Rounded button */
+  transition: background-color 0.3s ease; /* Smooth button hover effect */
+}
+
+/* Blue Button Scoped to .pricing_card */
+.pricing_card .card .btn-primary {
+  background-color: #1d2b64; /* Deep blue for button */
+  border: none;
+  border: 1px solid #1d2b64;
+  border-radius: 8px;
+  width: 229px;
+  font-size: 19px;
+  color: #fff; /* White text */
+}
+
+.pricing_card .card .btn-primary:hover {
+  background-color: #fff; /* Lighter blue on hover */
+  color: #1d2b64; /* Deep blue text */
+}
+
+/* Responsive Design Scoped to .pricing_card */
+@media (max-width: 768px) {
+  .pricing_card .card {
+    margin-bottom: 20px; /* Add space between cards on small screens */
+  }
+}
+
+/* Card Price Months Scoped to .pricing_card */
+.pricing_card .card-price .months {
+  font-size: 1.5rem; /* Adjust font size for larger text */
+  font-weight: bold; /* Make the text bold for emphasis */
+  color: #555; /* Optional: change the text color */
+}
+
+span.card-month {
+  font-size: 27px;
+  color: #334151;
+}

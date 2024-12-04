@@ -14,6 +14,7 @@ import RessetPassword from "@/components/forget_password/RessetPassword.vue";
 import FrontLayout from "../views/layouts/Front.vue"
 import DashboardLayout from "../views/layouts/Dashboard.vue"
 import BlankLayout from "../views/layouts/Blank.vue"
+import PlansView from '../views/PlansView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -105,6 +106,11 @@ const router = createRouter({
       path: '/customize/rearrange',
       name: 'rearrangePage',
       component: CustomizeRearrange
+    },
+    {
+      path: '/plans',
+      name: 'plans',
+      component: PlansView
     },
   ]
 });
