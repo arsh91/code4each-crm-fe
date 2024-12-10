@@ -150,7 +150,7 @@
             </li>
           </ul>
         </li>
-        <li class="sidebar-list-item"
+        <!-- <li class="sidebar-list-item"
         v-if="
             dashboardData?.agency_website_info?.length >= 1 &&
             dashboardData?.agency_website_info[0].website_id
@@ -163,7 +163,7 @@
                   <i class="fa fa-credit-card me-3"></i>
                   <span class="sidebar-link-title"> Plans</span>
                 </router-link>
-              </li>
+              </li> -->
       </ul>
       <div class="dashboard-design" v-if="currentRoute === '/dashboard'">
         <div class="feedback-btn">

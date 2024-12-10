@@ -7,10 +7,10 @@ import SiteSettings from "@/views/SiteSettings.vue";
 import { useStore } from "@/stores/store";
 import { useForm } from "vee-validate";
 import Loader from "@/components/common/Loader.vue";
+import { useRouter } from "vue-router";
 
 
-
-
+const router = useRouter();
 const allErrors = ref({});
 
 const props = defineProps({
@@ -116,6 +116,9 @@ const emptyForm = () => {
   values.value.title = "";
 };
 
+const naviagte = (path)=>{
+  router.push(path);
+}
 
 const handleSubmission = async (responseh, plan_id) => {
   try {
@@ -211,7 +214,7 @@ const fetchPlans = async (paymentId) => {
             class="speedy-subscription bg-white"
           >
             <div class="container">
-              <!-- <div class="row">
+      <!-- <div class="row">
                 <div class="col-lg-12">
                   <div class="speedy-subscription-wrapper">
                     <div class="subscription-text-side">
@@ -233,6 +236,41 @@ const fetchPlans = async (paymentId) => {
                   </div>
                 </div>
               </div> -->
+              <div v-if="dashboardData?.user?.current_plans?.length > 0" class="row">
+                <div class="col-lg-12">
+                  <div class="speedy-subscription-wrapper">
+                    <div class="subscription-text-side">
+                      <h3 class="subscription-heading">
+                       Cureent Plann: {{ dashboardData.user.current_plans[0].plan.name }}
+
+                        
+<!--                         
+                        {{
+                          calculateDaysDifference(
+                            dashboardData.agency_website_info[0].created_at
+                          ) <= 0 ? "Congratulations! We're increasing your free usage limit 🚀" :`Only days ${calculateDaysDifference(
+                            dashboardData.agency_website_info[0].created_at
+                          )} left in your free trial! ⏳ Upgrade now for seamless website creation`
+                        }} -->
+                      </h3>
+                      
+                    </div>
+                    <div class="subscription-text-side">
+                      <h3 class="subscription-heading">
+
+                        {{ dashboardData.user.current_plans[0].planexpired > 0? `Exppiring in  ${dashboardData.user.current_plans[0].planexpired} Day`: 'Expired' }}
+
+                      </h3>
+                      
+                      <p></p>
+                    </div>
+                    <div v-if="dashboardData.user.current_plans[0].planexpired < 1" class="subscription-form-side">
+                      <a class="subscription-btn" style="cursor: pointer" @click="naviagte('/plans')"> Buy Plan
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
             
               <!-- <div class="row">
       <div class="col-lg-6" v-for="plan in filteredPlans" :key="plan.id">
@@ -259,15 +297,15 @@ const fetchPlans = async (paymentId) => {
             </div>
         
           </section>
-          <label>
+          <!-- <label>
       <input type="checkbox" v-model="isYearly"  class="me-1"/>
       <span> {{ isYearly ? 'Yearly' : 'Monthly' }} Plans</span>
-    </label>
-    <template v-if="filteredPlans.length > 0">
+    </label> -->
+    <!-- <template v-if="filteredPlans.length > 0">
         <section  v-for="plan in filteredPlans" :key="plan.id" class="speedy-subscription bg-white" style="width: 55%"
 >
           <div class="container">
-          <!-- <div class="row"> -->
+
                 <div class="col-lg-12">
                   <div class="speedy-subscription-wrapper">
                     <div class="subscription-text-side">
@@ -283,12 +321,12 @@ const fetchPlans = async (paymentId) => {
                     </div>
                   </div>
                 </div>
-              <!-- </div> -->
+
             </div>
 
             </section>
-          </template>
-          <section v-else  class="speedy-subscription bg-white" >
+          </template> -->
+          <!-- <section v-else  class="speedy-subscription bg-white" >
           <div class="container">
             <div class="col-lg-12">
               <div class="no-plans-wrapper">
@@ -297,7 +335,7 @@ const fetchPlans = async (paymentId) => {
               </div>
             </div>
           </div>
-        </section>
+        </section> -->
 
           <div class="page-header">
             <ol class="breadcrumb">
