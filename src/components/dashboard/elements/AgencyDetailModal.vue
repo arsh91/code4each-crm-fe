@@ -9,6 +9,7 @@ import { EventBus } from "@/EventBus";
 import * as yup from "yup";
 import "@/assets/js/dashboard.js";
 import { openLinkInNewTab } from "@/util/helper";
+import config from "/config";
 
 const dashBoardMethods = inject("dashBoardMethods");
 const loading = ref("");
@@ -23,6 +24,11 @@ const startTime = ref(null);
 const timeSpent = ref(null);
 const values = ref({});
 const allErrors = ref({});
+const selectedOptionTemplate = ref("");
+const templates = ref([]);
+const WebsiteCategories = ref([]);
+const selectedCategories = ref([]);
+const selectedTemplateId = ref(null);
 
 const domainUrl = ref(null);
 const { errors, resetForm, handleSubmit } = useForm();
@@ -79,7 +85,7 @@ const validationSchemaSeconds = yup.object({
 const submitAgencyDetailC = handleSubmit(async () => {
   try {
     startTimer();
-    currentStep.value = 4;
+    currentStep.value = 6;
     let formValues = values.value;
     const formData = new FormData();
     formData.append("logo", formValues.logo);
@@ -93,6 +99,10 @@ const submitAgencyDetailC = handleSubmit(async () => {
     formData.append("zip", formValues.zip);
     formData.append("description", formValues.description);
     formData.append("phone", formValues.phone);
+
+    if (selectedOptionTemplate.value === 'selectTemplate' && selectedTemplateId.value) {
+      formData.append("template_id", selectedTemplateId.value);
+    }
     if (showOthersCategoryName) {
       formData.append("others_category_name", formValues.othersCategoryName);
     }
@@ -108,9 +118,9 @@ const submitAgencyDetailC = handleSubmit(async () => {
       if (response?.data?.website_domain) {
         domainUrl.value = response?.data?.website_domain;
         getTimeSpent();
-        currentStep.value = 5;
+        currentStep.value = 7;
       } else {
-        currentStep.value = 6;
+        currentStep.value = 8;
       }
 
       EventBus.emit("fetchDashboardData");
@@ -135,6 +145,9 @@ const setFormValues = () => {
   values.value.country = "India";
 };
 onMounted(() => {
+  selectedCategories.value = ["all"];
+  fetchWebsiteTemplates();
+  fetchCategories();
   allDashboardData.value = props.dashboardData;
   setFormValues();
 });
@@ -151,8 +164,14 @@ watch(
 );
 
 const prevStep = () => {
-  currentStep.value--;
+  if (selectedOptionTemplate.value === 'randomlySelectTemplate' && currentStep.value === 5) {
+    // Go back to Step 3 when in Step 5 and the "randomlySelectTemplate" option is selected
+    currentStep.value = 3;
+  } else {
+    currentStep.value--; // Otherwise, just go to the previous step
+  }
 };
+
 const nextStep = async (step = false) => {
   try {
     if (step === "first") {
@@ -164,7 +183,16 @@ const nextStep = async (step = false) => {
         abortEarly: false,
       });
     }
-    currentStep.value++;
+    if (currentStep.value === 3) {
+      // Navigate based on selected option
+      if (selectedOptionTemplate.value === "selectTemplate") {
+        currentStep.value = 4; // Go to Step 4
+      } else if (selectedOptionTemplate.value === "randomlySelectTemplate") {
+        currentStep.value = 5; // Go to Step 5
+      }
+    } else {
+      currentStep.value++;
+    }
     allErrors.value = {};
   } catch (error) {
     const errors =
@@ -216,10 +244,87 @@ const formatTime = (milliseconds) => {
   const remainingSeconds = seconds % 60;
   return `${minutes} minutes ${remainingSeconds} seconds`;
 };
+
+const fetchWebsiteTemplates = async () => {
+  const response = await WordpressService.getWebsiteTemplates();
+  console.log("Fetch Website Templates Response:", response);
+
+  // Check if response contains the expected data
+  if (response && response.data && response.data.website_templates) {
+    // Data exists, assign it to the reactive variable
+    templates.value = response.data.website_templates;
+    console.log("Templates Data:", templates.value);
+  } else {
+    // Handle case when no data is returned or if response structure is unexpected
+    console.log("No website templates found or unexpected response structure");
+  }
+};
+const updateSelection = (selected) => {
+  if (selected === 'selectTemplate') {
+    selectedOptionTemplate.value = 'selectTemplate';
+  } else if (selected === 'randomlySelectTemplate') {
+    selectedOptionTemplate.value = 'randomlySelectTemplate';
+  }
+};
+const fetchCategories = async () => {
+  const response = await WordpressService.getCategoryOption();
+  console.log("Fetch Categories Response:", response);
+
+  // Check if response contains the expected data
+  if (response && response.data && response.data.categories) {
+    // Data exists, assign it to the reactive variable
+    WebsiteCategories.value = response.data.categories;
+    console.log("Website Categories Data:", WebsiteCategories.value);
+  } else {
+    // Handle case when no data is returned or if response structure is unexpected
+    console.log("No website Categories found or unexpected response structure");
+  }
+};
+
+// Filter templates based on selected categories
+const filteredTemplates = computed(() => {
+  if (selectedCategories.value.includes('all')) {
+    return templates.value; // Show all templates if 'all' is selected
+  }
+
+  // Filter templates based on selected categories
+  return templates.value.filter(template => {
+    const templateCategories = template.category_id.split(',').map(cat => cat.trim().toLowerCase());
+    return selectedCategories.value.some(selectedCategory =>
+      templateCategories.includes(selectedCategory.toLowerCase())
+    );
+  });
+});
+
+// Handle category selection
+const toggleCategory = (category) => {
+  if (category === 'all') {
+    selectedCategories.value = ['all'];  // If 'all' is selected, show all templates
+  } else {
+    // Replace the category list with the newly selected category
+    // This ensures only one category is selected at a time
+    selectedCategories.value = [category];
+  }
+
+  // Ensure "all" is deselected when specific categories are selected
+  if (selectedCategories.value.length > 1 || selectedCategories.value[0] !== 'all') {
+    selectedCategories.value = selectedCategories.value.filter((cat) => cat !== 'all');
+  }
+};
+const selectTemplate = (templateId) => {
+  selectedTemplateId.value = templateId; // Update the selected template ID
+};
+const goToStepOneAndPreview = (url) => {
+    currentStep.value = 1; 
+    openLinkInNewTab(url); 
+};
+
+
 </script>
 <template>
   <div class="modal fade" id="basicModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog" id="create-popup" role="document">
+    <div class="modal-dialog" id="create-popup" role="document"
+    :class="{ 'custom-style': selectedOptionTemplate == 'selectTemplate' && currentStep == 4 }">
       <div class="modal-content1">
         <div class="modal-header">
           <button
@@ -398,6 +503,139 @@ const formatTime = (milliseconds) => {
                 </button>
               </div>
               <div class="step step-3" v-if="currentStep === 3">
+                <div class="mb-3">
+                  <h3>Choose an Option</h3>
+                  <div class="templateSelect d-flex align-items-center">
+                    <label class="checkbox-button">
+                      <input
+                        type="radio"
+                        :value="'selectTemplate'"
+                        v-model="selectedOptionTemplate"
+                      />
+                      <span class="btn btn-primary submitTemplate" :class="{ active: selectedOptionTemplate === 'selectTemplate' }">
+                        Select Template
+                      </span>
+                    </label>
+                    <br />
+
+                    <label class="checkbox-button">
+                      <input
+                        type="radio"
+                        :value="'randomlySelectTemplate'"
+                        v-model="selectedOptionTemplate"
+                      />
+                      <span class="btn btn-primary submitTemplate" :class="{ active: selectedOptionTemplate === 'randomlySelectTemplate' }">
+                        Randomly Select Template
+                      </span>
+                    </label>
+                  <br />
+                  <!-- <div class="text-danger">{{ allErrors.country }}</div> -->
+                </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn btn-primary prev-step"
+                  @click="prevStep"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary next-step"
+                  @click="nextStep('second')"
+                >
+                  Next
+                </button>
+              </div>
+              <div class="step step-4" v-if="currentStep === 4">
+                <div class="mb-3">
+                  <h3>Start Selecting a Template</h3>
+                  <div class="tabs-design ">
+                    <ul class="nav nav-pills mb-3 border-bottom border-2" id="pills-tab" role="tablist">
+                      <!-- Add "All Websites" tab -->
+                        <li class="nav-item" role="presentation">
+                          <button
+                            class="nav-link text-primary fw-semibold position-relative"
+                            :class="{ active: selectedCategories.length === 1 && selectedCategories.includes('all') }"
+                            id="pills-all-websites-tab"
+                            data-bs-toggle="pill"
+                            data-bs-target="#pills-all-websites"
+                            type="button"
+                            role="tab"
+                            aria-controls="pills-all-websites"
+                            :aria-selected="selectedCategories.includes('all')"
+                            @click="toggleCategory('all')"
+                          >
+                          All Websites
+                          </button>
+                        </li>
+                        <!-- Loop through categories -->
+                          <li
+                            class="nav-item"
+                            role="presentation"
+                            v-for="(category, index) in categories"
+                            :key="category.id"
+                          >
+                            <button
+                              class="nav-link text-primary fw-semibold position-relative"
+                              :class="{ active: selectedCategories.includes(category.name.toLowerCase()) }"
+                              :id="'pills-' + category.name.toLowerCase() + '-tab'"
+                              data-bs-toggle="pill"
+                              :data-bs-target="'#pills-' + category.name.toLowerCase()"
+                              type="button"
+                              role="tab"
+                              :aria-controls="'pills-' + category.name.toLowerCase()"
+                              :aria-selected="selectedCategories.includes(category.name.toLowerCase())"
+                              @click="toggleCategory(category.name.toLowerCase())"
+                            >
+                              {{ category.name }}
+                            </button>
+                          </li>
+                    </ul>
+                  </div>
+                  <div class="tab-content border rounded-3 border-primary p-3 text-danger" id="pills-tabContent">
+                    <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+                      <div class="all-wesbite">
+                        <div class="row">
+                          <div class="col-lg-4" v-for="(template, index) in filteredTemplates" :key="index">
+                            <div class="card-wrapper">
+                              <div class="img-design">
+                                <!-- <img src="/images/infinty-12-27-2024_01_54_PM.png">  -->
+                                <img :src="config.CRM_API_URL +'/storage/'+ template.featured_image" />
+                              </div>
+                              <div class="button-form">
+                                <button
+                                  class="button-design"
+                                  type="button"
+                                  :class="{ 'btn-selected': selectedTemplateId === template.id }"
+                                  @click="selectTemplate(template.id)"
+                                >
+                                  {{ selectedTemplateId === template.id ? 'Selected' : 'Select' }}
+                                </button>
+                                <button class="button-design" type="button"> Preview</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>  
+                    <button
+                      type="button"
+                      class="btn btn-primary prev-step"
+                      @click="prevStep"
+                    >Previous
+                    </button>
+                    <button
+                    type="button"
+                    class="btn btn-primary next-step"
+                    @click="nextStep('second')"
+                    >Next
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="step step-5" v-if="currentStep === 5">
                 <!-- Step 2 form fields here -->
 
                 <div class="mb-3">
@@ -411,7 +649,13 @@ const formatTime = (milliseconds) => {
                     v-model="values.description"
                   ></textarea>
                 </div>
-
+                <!-- Hidden input for template_id -->
+                <input
+                  type="hidden"
+                  name="template_id"
+                  :value="selectedOptionTemplate === 'selectTemplate' ? selectedTemplateId : ''"
+                />
+                
                 <button
                   type="button"
                   class="btn btn-primary prev-step"
@@ -424,8 +668,8 @@ const formatTime = (milliseconds) => {
                 </button>
               </div>
               <div
-                class="step step-4"
-                :class="currentStep != 4 ? 'd-none' : ''"
+                class="step step-6"
+                :class="currentStep != 6 ? 'd-none' : ''"
               >
                 <div class="mb-3 next-step">
                   <div class="three-body2">
@@ -435,7 +679,7 @@ const formatTime = (milliseconds) => {
                   </div>
                 </div>
               </div>
-              <div class="step step-5" v-if="currentStep === 5">
+              <div class="step step-7" v-if="currentStep === 7">
                 <div class="mb-3">
                   <div class="Successfully">
                     <h1>Congratulations!</h1>
@@ -457,7 +701,7 @@ const formatTime = (milliseconds) => {
                           class="go-home"
                           data-bs-dismiss="modal"
                           aria-label="Close"
-                          @click="openLinkInNewTab(domainUrl)"
+                          @click="goToStepOneAndPreview(domainUrl)"
                         >
                           Preview
                         </button>
@@ -466,7 +710,7 @@ const formatTime = (milliseconds) => {
                   </div>
                 </div>
               </div>
-              <div class="step step-5" v-if="currentStep === 6">
+              <div class="step step-7" v-if="currentStep === 8">
                 <!-- Step 2 form fields here -->
                 <div class="mb-3">
                   <div class="Successfully">
