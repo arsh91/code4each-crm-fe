@@ -259,7 +259,7 @@ const fetchPlans = async (paymentId) => {
                     <div class="subscription-text-side">
                       <h3 class="subscription-heading">
 
-                        {{ dashboardData.user.current_plans[0].planexpired > 0? `Exppiring in  ${dashboardData.user.current_plans[0].planexpired} Day`: 'Expired' }}
+                        {{ dashboardData.user.current_plans[0].planexpired > 0? `Expiring in  ${dashboardData.user.current_plans[0].planexpired} Day`: 'Expired' }}
 
                       </h3>
                       
