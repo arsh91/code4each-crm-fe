@@ -53,6 +53,7 @@ watch(
 );
 
 onMounted(() => {
+  console.log("test")
   fetchPlans();
   allDashboardData.value = props.dashboardData;
   allErrors.value = {};
