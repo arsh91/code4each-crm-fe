@@ -242,7 +242,7 @@ const fetchPlans = async (paymentId) => {
                   <div class="speedy-subscription-wrapper">
                     <div class="subscription-text-side">
                       <h3 class="subscription-heading">
-                       Cureent Plann: {{ dashboardData.user.current_plans[0].plan.name }}
+                       Current Plan: {{ dashboardData.user.current_plans[0].plan.name }}
 
                         
 <!--                         
