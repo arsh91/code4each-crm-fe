@@ -53,6 +53,7 @@ watch(
 );
 
 onMounted(() => {
+  console.log("test")
   fetchPlans();
   allDashboardData.value = props.dashboardData;
   allErrors.value = {};
@@ -241,7 +242,7 @@ const fetchPlans = async (paymentId) => {
                   <div class="speedy-subscription-wrapper">
                     <div class="subscription-text-side">
                       <h3 class="subscription-heading">
-                       Cureent Plann: {{ dashboardData.user.current_plans[0].plan.name }}
+                       Current Plan: {{ dashboardData.user.current_plans[0].plan.name }}
 
                         
 <!--                         
@@ -258,7 +259,7 @@ const fetchPlans = async (paymentId) => {
                     <div class="subscription-text-side">
                       <h3 class="subscription-heading">
 
-                        {{ dashboardData.user.current_plans[0].planexpired > 0? `Exppiring in  ${dashboardData.user.current_plans[0].planexpired} Day`: 'Expired' }}
+                        {{ dashboardData.user.current_plans[0].planexpired > 0? `Expiring in  ${dashboardData.user.current_plans[0].planexpired} Day`: 'Expired' }}
 
                       </h3>
                       
