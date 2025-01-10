@@ -2657,9 +2657,9 @@ a.btn.btn-success {
     }
 }
 
-/* .step.step-4 .mb-3 {
-    height: 200PX;
-} */
+.step.step-6 .mb-3 {
+    height: 200px;
+}
 
 .dashboard-design {
     position: absolute;
@@ -3637,7 +3637,7 @@ p.flash__body {
     background-color: #1d2b64fa;
     color: #ffffff !important;
 }
-  .nav .nav-item button.active::after {
+  /* .nav .nav-item button.active::after {
     content: "";
     border-bottom: 4px solid var(--bs-danger);
     width: 100%;
@@ -3645,7 +3645,7 @@ p.flash__body {
     left: 0;
     bottom: -1px;
     border-radius: 5px 5px 0 0;
-  }
+  } */
   ul#pills-tab {
     /* border: 1px solid #dee2e6; */
     display: flex;

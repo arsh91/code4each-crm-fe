@@ -287,30 +287,42 @@ const filteredTemplates = computed(() => {
     return templates.value; // Show all templates if 'all' is selected
   }
 
+  // Create a Set to avoid duplicate templates
+  const uniqueTemplates = new Set();
+
   // Filter templates based on selected categories
-  return templates.value.filter(template => {
+  templates.value.forEach(template => {
     const templateCategories = template.category_id.split(',').map(cat => cat.trim().toLowerCase());
-    return selectedCategories.value.some(selectedCategory =>
-      templateCategories.includes(selectedCategory.toLowerCase())
-    );
+
+    if (selectedCategories.value.some(selectedCategory => templateCategories.includes(selectedCategory.toLowerCase()))) {
+      uniqueTemplates.add(template);
+    }
   });
+
+  // Convert Set back to an array for rendering
+  return Array.from(uniqueTemplates);
 });
 
 // Handle category selection
 const toggleCategory = (category) => {
   if (category === 'all') {
-    selectedCategories.value = ['all'];  // If 'all' is selected, show all templates
+    // If 'all' is selected, deselect other categories
+    selectedCategories.value = ['all'];
   } else {
-    // Replace the category list with the newly selected category
-    // This ensures only one category is selected at a time
-    selectedCategories.value = [category];
+    // If 'all' is selected and another category is clicked, deselect 'all'
+    selectedCategories.value = selectedCategories.value.filter(cat => cat !== 'all');
+
+    if (selectedCategories.value.includes(category)) {
+      // If category is already selected, deselect it
+      selectedCategories.value = selectedCategories.value.filter(cat => cat !== category);
+    } else {
+      // Otherwise, add the category to the selected list
+      selectedCategories.value.push(category);
+    }
   }
 
-  // Ensure "all" is deselected when specific categories are selected
-  if (selectedCategories.value.length > 1 || selectedCategories.value[0] !== 'all') {
-    selectedCategories.value = selectedCategories.value.filter((cat) => cat !== 'all');
-  }
 };
+
 const selectTemplate = (templateId) => {
   selectedTemplateId.value = templateId; // Update the selected template ID
 };
@@ -577,20 +589,28 @@ const goToStepOneAndPreview = (url) => {
                             v-for="(category, index) in categories"
                             :key="category.id"
                           >
-                            <button
-                              class="nav-link text-primary fw-semibold position-relative"
-                              :class="{ active: selectedCategories.includes(category.name.toLowerCase()) }"
-                              :id="'pills-' + category.name.toLowerCase() + '-tab'"
-                              data-bs-toggle="pill"
-                              :data-bs-target="'#pills-' + category.name.toLowerCase()"
-                              type="button"
-                              role="tab"
-                              :aria-controls="'pills-' + category.name.toLowerCase()"
-                              :aria-selected="selectedCategories.includes(category.name.toLowerCase())"
-                              @click="toggleCategory(category.name.toLowerCase())"
-                            >
-                              {{ category.name }}
-                            </button>
+                          <button
+                            :class="[
+                              'nav-link',
+                              'text-primary',
+                              'fw-semibold',
+                              'position-relative',
+                              { active: selectedCategories.includes(category.name.toLowerCase()) }
+                            ]"
+                            :id="'pills-' + category.name.toLowerCase() + '-tab'"
+                            data-bs-toggle="pill"
+                            :data-bs-target="'#pills-' + category.name.toLowerCase()"
+                            type="button"
+                            role="tab"
+                            :aria-controls="'pills-' + category.name.toLowerCase()"
+                            :aria-selected="selectedCategories.includes(category.name.toLowerCase())"
+                            @click="toggleCategory(category.name.toLowerCase())"
+                             :style="{ 'background-color' : selectedCategories.includes(category.name.toLowerCase()) ? '#1c2960' : '',
+                            'color' : selectedCategories.includes(category.name.toLowerCase()) ? 'white !important' : ''
+                              }"
+                          >
+                            {{ category.name }} 
+                          </button> 
                           </li>
                     </ul>
                   </div>
