@@ -26,6 +26,9 @@ const WordpressService = {
   regenerateWebsite: (data) => {
     return requests(baseUrl).post(`/components/regenerate`, data)
   },
+  getWebsiteTemplates: () => {
+    return requests(baseUrl).get(`/website-templates`)
+  },
   getGlobalColors: (data) => {
     return requests(baseUrl).get(`/get-components-global-colors`, {
       params: data
