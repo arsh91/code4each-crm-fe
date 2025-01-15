@@ -2167,7 +2167,7 @@ button.btn.btn-primary.prev-step {
     gap: 6px;
     background: transparent;
     border-radius: 8px;
-    padding: 9px 30px;
+    padding: 10px 35px;
     margin-left: 16px;
 }
 
@@ -3572,8 +3572,9 @@ p.flash__body {
     border-radius: 8px;
 }
 .templateSelect {
-    column-gap: 24px;
-    margin: 7px 51px 0px 103px;
+    justify-content: center;
+    /* column-gap: 24px; */
+    /* margin: 7px 51px 0px 103px; */
 }
 /* new css dashbaord   */
 
@@ -3758,3 +3759,25 @@ button.button-design1 {
         width: 90%;
     }
 }
+
+.all-wesbite {
+    display: flex;
+    column-gap: 25px;
+}
+
+.qqwertt{
+    width: 35%;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border-radius: 20px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin: 10px auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 2px solid #1c2961;
+    padding: 10px 10px;
+    height: fit-content;
+}
+
+
