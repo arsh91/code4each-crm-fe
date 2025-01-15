@@ -120,6 +120,7 @@ const createOrder = async(palnRazorId) => {
   planDetailModalShow.value = false
 
 };
+
 const handleSubmission = async (responseh, plan_id) => {
   try {
     
@@ -132,6 +133,7 @@ const handleSubmission = async (responseh, plan_id) => {
     if (response.status === 200 && response.data.success) {
       console.log("Payment submitted successfully.");
       store.updateFlashMeassge(true, "Payment successful!");
+      router.push("/dashboard");
     }
   } catch (error) {
     console.error("Error:", error);

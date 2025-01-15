@@ -451,7 +451,7 @@ button.btn.btn-primary.next-step {
   color: #fff;
   /* background-color: #23286e; */
   border-color: #1d2b64;
-  padding: 10px 18px;
+  padding: 10px 35px;
   /* display: flex; */
   float: inline-end;
   background: #1d2b64;
