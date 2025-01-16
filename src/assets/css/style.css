@@ -3758,3 +3758,12 @@ button.button-design1 {
         width: 90%;
     }
 }
+h3#chooseOption {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 35px;
+}
+.mb-3.allTemplates {
+    position: relative;
+    padding: 0rem 1rem;
+}
