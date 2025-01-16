@@ -24,11 +24,12 @@ const startTime = ref(null);
 const timeSpent = ref(null);
 const values = ref({});
 const allErrors = ref({});
-const selectedOptionTemplate = ref("");
+const selectedOptionTemplate = ref("randomlySelectTemplate");
 const templates = ref([]);
 const WebsiteCategories = ref([]);
 const selectedCategories = ref([]);
 const selectedTemplateId = ref(null);
+const selectedComponents = ref([]);
 
 const domainUrl = ref(null);
 const { errors, resetForm, handleSubmit } = useForm();
@@ -132,11 +133,6 @@ const submitAgencyDetailC = handleSubmit(async () => {
   resetForm();
 });
 
-const clearFormValues = (values) => {
-  values.category_id = "";
-  values.description = "";
-  values.address = "";
-};
 
 const setFormValues = () => {
   values.value.businessName = allDashboardData.value?.user?.agency?.name;
@@ -165,11 +161,13 @@ watch(
 
 const prevStep = () => {
   if (selectedOptionTemplate.value === 'randomlySelectTemplate' && currentStep.value === 5) {
-    // Go back to Step 3 when in Step 5 and the "randomlySelectTemplate" option is selected
     currentStep.value = 3;
   } else {
-    currentStep.value--; // Otherwise, just go to the previous step
+    currentStep.value--; 
   }
+  selectedTemplateId.value = null
+  selectedComponents.value = []
+
 };
 
 const nextStep = async (step = false) => {
@@ -184,11 +182,13 @@ const nextStep = async (step = false) => {
       });
     }
     if (currentStep.value === 3) {
-      // Navigate based on selected option
       if (selectedOptionTemplate.value === "selectTemplate") {
-        currentStep.value = 4; // Go to Step 4
+        currentStep.value = 4; 
+        const categoryname = getCategoryNameById(values.value.businessCategory)
+        selectedCategories.value = [categoryname.toLowerCase()]
       } else if (selectedOptionTemplate.value === "randomlySelectTemplate") {
-        currentStep.value = 5; // Go to Step 5
+        submitAgencyDetailC();
+        // currentStep.value = 5; 
       }
     } else {
       currentStep.value++;
@@ -238,59 +238,46 @@ const getTimeSpent = () => {
   timeSpent.value = Math.floor((Date.now() - startTime.value) / 1000);
 };
 
-const formatTime = (milliseconds) => {
-  const seconds = Math.floor(milliseconds / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes} minutes ${remainingSeconds} seconds`;
-};
-
 const fetchWebsiteTemplates = async () => {
-  const response = await WordpressService.getWebsiteTemplates();
-  console.log("Fetch Website Templates Response:", response);
+  try{
+    const response = await WordpressService.getWebsiteTemplates();
+    if (response && response.data && response.data.website_templates) {
+      templates.value = response.data.website_templates;
+    } else {
+      console.log("No website templates found or unexpected response structure");
+    }
+  } catch (error) {
+      errorMessage.value = error.response?.data?.message;
+      console.error(error);
+  }
+};
 
-  // Check if response contains the expected data
-  if (response && response.data && response.data.website_templates) {
-    // Data exists, assign it to the reactive variable
-    templates.value = response.data.website_templates;
-    console.log("Templates Data:", templates.value);
-  } else {
-    // Handle case when no data is returned or if response structure is unexpected
-    console.log("No website templates found or unexpected response structure");
-  }
-};
-const updateSelection = (selected) => {
-  if (selected === 'selectTemplate') {
-    selectedOptionTemplate.value = 'selectTemplate';
-  } else if (selected === 'randomlySelectTemplate') {
-    selectedOptionTemplate.value = 'randomlySelectTemplate';
-  }
-};
 const fetchCategories = async () => {
-  const response = await WordpressService.getCategoryOption();
-  console.log("Fetch Categories Response:", response);
-
-  // Check if response contains the expected data
-  if (response && response.data && response.data.categories) {
-    // Data exists, assign it to the reactive variable
-    WebsiteCategories.value = response.data.categories;
-    console.log("Website Categories Data:", WebsiteCategories.value);
-  } else {
-    // Handle case when no data is returned or if response structure is unexpected
-    console.log("No website Categories found or unexpected response structure");
+  try{
+    const response = await WordpressService.getCategoryOption();
+    if (response && response.data && response.data.categories) {
+      WebsiteCategories.value = response.data.categories;
+    } else {
+      console.log("No website Categories found or unexpected response structure");
+    }
+  } catch (error) {
+    errorMessage.value = error.response?.data?.message;
+    console.error(error);
   }
+};
+
+const getCategoryNameById = (id) => {
+    const category = WebsiteCategories.value.find(cat => cat.id === id);
+    return category ? category.name : 'Unknown Category';
 };
 
 // Filter templates based on selected categories
 const filteredTemplates = computed(() => {
   if (selectedCategories.value.includes('all')) {
-    return templates.value; // Show all templates if 'all' is selected
+    return templates.value; 
   }
 
-  // Create a Set to avoid duplicate templates
   const uniqueTemplates = new Set();
-
-  // Filter templates based on selected categories
   templates.value.forEach(template => {
     const templateCategories = template.category_id.split(',').map(cat => cat.trim().toLowerCase());
 
@@ -299,24 +286,18 @@ const filteredTemplates = computed(() => {
     }
   });
 
-  // Convert Set back to an array for rendering
   return Array.from(uniqueTemplates);
 });
 
 // Handle category selection
 const toggleCategory = (category) => {
   if (category === 'all') {
-    // If 'all' is selected, deselect other categories
     selectedCategories.value = ['all'];
   } else {
-    // If 'all' is selected and another category is clicked, deselect 'all'
     selectedCategories.value = selectedCategories.value.filter(cat => cat !== 'all');
-
     if (selectedCategories.value.includes(category)) {
-      // If category is already selected, deselect it
       selectedCategories.value = selectedCategories.value.filter(cat => cat !== category);
     } else {
-      // Otherwise, add the category to the selected list
       selectedCategories.value.push(category);
     }
   }
@@ -324,12 +305,19 @@ const toggleCategory = (category) => {
 };
 
 const selectTemplate = (templateId) => {
-  selectedTemplateId.value = templateId; // Update the selected template ID
+  const template = getTemplateById(templateId)
+  selectedComponents.value = template.components
+  selectedTemplateId.value = templateId; 
 };
 const goToStepOneAndPreview = (url) => {
     currentStep.value = 1; 
     openLinkInNewTab(url); 
 };
+
+// Function to find the template by id
+const getTemplateById = (id)=> {
+  return templates.value.find(template => template.id === id);
+}
 
 
 </script>
@@ -432,6 +420,15 @@ const goToStepOneAndPreview = (url) => {
                     {{ values.logo.name }}
                   </div>
                   <div class="text-danger">{{ allErrors.logo }}</div>
+                  <label for="description" class="form-label"
+                    >Description</label
+                  >
+                  <textarea
+                    class="form-control input"
+                    placeholder="Description.."
+                    rows="3"
+                    v-model="values.description"
+                  ></textarea>
                 </div>
 
                 <button
@@ -518,31 +515,28 @@ const goToStepOneAndPreview = (url) => {
                 <div class="mb-3">
                   <h3>Choose an Option</h3>
                   <div class="templateSelect d-flex align-items-center">
-                    <label class="checkbox-button">
-                      <input
-                        type="radio"
-                        :value="'selectTemplate'"
-                        v-model="selectedOptionTemplate"
-                      />
-                      <span class="btn btn-primary submitTemplate" :class="{ active: selectedOptionTemplate === 'selectTemplate' }">
-                        Select Template
-                      </span>
+                    <label class="checkbox-button Current-layout">
+                      <i v-if="selectedOptionTemplate === 'selectTemplate'" class="fa fa-check" aria-hidden="true"></i>
+                      <button data-v-5913d391="" type="button" class="btn btn-primary templatebutton" :class="{
+                        'prev-step': selectedOptionTemplate === 'selectTemplate',
+                        'next-step': selectedOptionTemplate != 'selectTemplate'
+                      }"
+                      @click="selectedOptionTemplate = 'selectTemplate'"
+                      > Select Template</button>
                     </label>
                     <br />
 
-                    <label class="checkbox-button">
-                      <input
-                        type="radio"
-                        :value="'randomlySelectTemplate'"
-                        v-model="selectedOptionTemplate"
-                      />
-                      <span class="btn btn-primary submitTemplate" :class="{ active: selectedOptionTemplate === 'randomlySelectTemplate' }">
-                        Randomly Select Template
-                      </span>
+                    <label class="checkbox-button Current-layout">
+                      <i class="fa fa-check" aria-hidden="true" v-if="selectedOptionTemplate === 'randomlySelectTemplate'"></i>
+                      <button data-v-5913d391="" type="button" class="btn btn-primary" :class="{
+                        'prev-step': selectedOptionTemplate === 'randomlySelectTemplate',
+                        'next-step': selectedOptionTemplate != 'randomlySelectTemplate'
+                      }"
+                      @click="selectedOptionTemplate = 'randomlySelectTemplate'"
+                      > Randomly Select Template </button>
                     </label>
                   <br />
-                  <!-- <div class="text-danger">{{ allErrors.country }}</div> -->
-                </div>
+                </div>  
                 </div>
 
                 <button
@@ -553,9 +547,9 @@ const goToStepOneAndPreview = (url) => {
                   Previous
                 </button>
                 <button
-                  type="button"
+                  type="buttton"
                   class="btn btn-primary next-step"
-                  @click="nextStep('second')"
+                  @click="nextStep"
                 >
                   Next
                 </button>
@@ -617,11 +611,10 @@ const goToStepOneAndPreview = (url) => {
                   <div class="tab-content border rounded-3 border-primary p-3 text-danger" id="pills-tabContent">
                     <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
                       <div class="all-wesbite">
-                        <div class="row">
-                          <div class="col-lg-4" v-for="(template, index) in filteredTemplates" :key="index">
+                        <div class="row" style="width: 69%">
+                          <div class="col-lg-6" v-for="(template, index) in filteredTemplates" :key="index">
                             <div class="card-wrapper">
                               <div class="img-design">
-                                <!-- <img src="/images/infinty-12-27-2024_01_54_PM.png">  -->
                                 <img :src="config.CRM_API_URL +'/storage/'+ template.featured_image" />
                               </div>
                               <div class="button-form">
@@ -638,6 +631,15 @@ const goToStepOneAndPreview = (url) => {
                             </div>
                           </div>
                         </div>
+
+                        <div v-if="selectedComponents.length > 0" style="width: 35%;" class="qqwertt">
+                          <div v-for="(selectedComponent, index) in selectedComponents"
+                          :key="selectedComponent.id">
+                          <img :src="config.CRM_API_URL +'/storage/'+ selectedComponent.component_detail.preview" style="width: 400px;" />
+                          </div>
+                          
+
+                        </div>
                       </div>
                     </div>  
                     <button
@@ -647,45 +649,13 @@ const goToStepOneAndPreview = (url) => {
                     >Previous
                     </button>
                     <button
-                    type="button"
+                    type="submit"
                     class="btn btn-primary next-step"
-                    @click="nextStep('second')"
+                    :disabled="!selectedTemplateId"
                     >Next
                     </button>
                   </div>
                 </div>
-              </div>
-              <div class="step step-5" v-if="currentStep === 5">
-                <!-- Step 2 form fields here -->
-
-                <div class="mb-3">
-                  <label for="description" class="form-label"
-                    >Description (optional)</label
-                  >
-                  <textarea
-                    class="form-control input"
-                    placeholder="Description.."
-                    rows="3"
-                    v-model="values.description"
-                  ></textarea>
-                </div>
-                <!-- Hidden input for template_id -->
-                <input
-                  type="hidden"
-                  name="template_id"
-                  :value="selectedOptionTemplate === 'selectTemplate' ? selectedTemplateId : ''"
-                />
-                
-                <button
-                  type="button"
-                  class="btn btn-primary prev-step"
-                  @click="prevStep"
-                >
-                  Previous
-                </button>
-                <button type="submit" class="btn btn-primary next-step">
-                  Create Site
-                </button>
               </div>
               <div
                 class="step step-6"
@@ -761,12 +731,4 @@ const goToStepOneAndPreview = (url) => {
     </div>
   </div>
 </template>
-<style scoped>
-/* .select-category {
-  height: 50px;
-  padding: 10px 20px;
-  font-size: 14px;
-  margin-bottom: 15px;
-  border: 1px solid lightgray;
-} */
-</style>
+
