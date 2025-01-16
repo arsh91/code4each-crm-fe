@@ -3,12 +3,13 @@ import { ref, defineProps, computed, defineEmits, onMounted, inject, watch } fro
 import WordpressService from "@/service/WordpressService";
 import config from "/config";
 
-const selectedOptionTemplate = ref("");
+const currentStep = ref(1);
+const selectedOptionTemplate = ref("randomlySelectTemplate");
 const templates = ref([]);
 const WebsiteCategories = ref([]);
 const selectedCategories = ref([]);
 const selectedTemplateId = ref(null);
-const currentStep = ref(1);
+const selectedComponents = ref([]);
 
 const props = defineProps({
   modalTitle: String,
@@ -20,7 +21,9 @@ const props = defineProps({
 });
 const emits = defineEmits();
 const confirmSubmit = () => {
+  currentStep.value = 1;
   emits("confirm", selectedTemplateId.value);
+  
 };
 
 const prevStep = () => {
@@ -29,6 +32,8 @@ const prevStep = () => {
   } else {
     currentStep.value--;
   }
+  selectedTemplateId.value = null
+  selectedComponents.value = []
 };
 
 const nextStep = () => {
@@ -103,13 +108,27 @@ const toggleCategory = (category) => {
 };
 
 const selectTemplate = (templateId) => {
+  const template = getTemplateById(templateId)
+  selectedComponents.value = template.components
   selectedTemplateId.value = templateId; 
 };
+
+const getTemplateById = (id)=> {
+  return templates.value.find(template => template.id === id);
+}
 
 onMounted(() => {
   selectedCategories.value = ["all"];
   fetchWebsiteTemplates();
   fetchCategories();
+  const modal = document.getElementById('selectOptionForRegenerate');
+  modal.addEventListener('hide.bs.modal', () => {
+    currentStep.value = 1;
+    selectedOptionTemplate.value = "randomlySelectTemplate";
+    selectedCategories.value = ['all']; 
+    selectedTemplateId.value = null; 
+    selectedComponents.value = []; 
+  });
 });
 </script>
 
@@ -132,39 +151,51 @@ onMounted(() => {
             aria-label="Close"
           ></button>
         </div>
+        <div class="modal-body">
+          <div id="multi-step-form" class="container">
 
-        <div v-if="currentStep === 1" class="step step-1">
-          <div class="mb-3">
-            <h3 id="chooseOption">{{ props.optionTitle }}</h3>
-            <div class="templateSelect d-flex align-items-center">
-              <label class="checkbox-button">
-                <input
-                  type="radio"
-                  :value="'selectTemplate'"
-                  v-model="selectedOptionTemplate"
-                />
-                <span
-                  class="btn btn-primary submitTemplate"
-                  :class="{ active: selectedOptionTemplate === 'selectTemplate' }"
-                >
-                  Select Template
-                </span>
-              </label>
-              <br />
-              <label class="checkbox-button">
-                <input
-                  type="radio"
-                  :value="'randomlySelectTemplate'"
-                  v-model="selectedOptionTemplate"
-                />
-                <span
-                  class="btn btn-primary submitTemplate"
-                  :class="{ active: selectedOptionTemplate === 'randomlySelectTemplate' }"
-                >
-                  Randomly Select Template
-                </span>
-              </label>
-            </div>
+            <!-- Step-1 Choose your option Start -->
+            <div v-if="currentStep === 1" class="step step-1">
+              <div class="mb-3">
+                <h3>{{ props.optionTitle }}</h3>
+                  <div class="templateSelect d-flex align-items-center">
+                    <label class="checkbox-button Current-layout">
+                      <i v-if="selectedOptionTemplate === 'selectTemplate'" class="fa fa-check" aria-hidden="true">
+                      </i>
+                        <button
+                          type="button"
+                          class="btn btn-primary templatebutton"
+                          :class="{
+                            'prev-step': selectedOptionTemplate === 'selectTemplate',
+                            'next-step': selectedOptionTemplate !== 'selectTemplate'
+                          }"
+                          data-v-5913d391=""
+                          @click="selectedOptionTemplate = 'selectTemplate'"
+                        >
+                          Select Template
+                        </button>
+                    </label>
+                    <br />
+
+                    <label class="checkbox-button Current-layout">
+                      <i class="fa fa-check" aria-hidden="true" v-if="selectedOptionTemplate === 'randomlySelectTemplate'">
+                      </i>
+                        <button
+                          type="button"
+                          class="btn btn-primary"
+                          :class="{
+                            'prev-step': selectedOptionTemplate === 'randomlySelectTemplate',
+                            'next-step': selectedOptionTemplate !== 'randomlySelectTemplate'
+                          }"
+                          data-v-5913d391=""
+                          @click="selectedOptionTemplate = 'randomlySelectTemplate'"
+                        >
+                          Randomly Select Template
+                        </button>
+                    </label>
+                    <br />
+                  </div>
+              </div>
               <button
                 type="button"
                 class="btn btn-primary next-step"
@@ -172,93 +203,127 @@ onMounted(() => {
               >
                 {{ props.nextText }}
               </button>
-          </div>
-        </div>
-
-        <div v-if="currentStep === 2" class="step step-2">
-          <div class="mb-3 allTemplates">
-            <h3 id="chooseOption">Start Selecting a Template</h3>
-            <div class="tabs-design">
-              <ul class="nav nav-pills mb-3 border-bottom border-2" id="pills-tab" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button
-                    class="nav-link text-primary fw-semibold"
-                    :class="{ active: selectedCategories.length === 1 && selectedCategories.includes('all') }"
-                    @click="toggleCategory('all')"
-                  >
-                    All Websites
-                  </button>
-                </li>
-                <li
-                  class="nav-item"
-                  role="presentation"
-                  v-for="(category, index) in WebsiteCategories"
-                  :key="index"
-                >
-                  <button
-                    :class="[
-                      'nav-link',
-                      { active: selectedCategories.includes(category.name.toLowerCase()) }
-                    ]"
-                    @click="toggleCategory(category.name.toLowerCase())"
-                  >
-                    {{ category.name }}
-                  </button>
-                </li>
-              </ul>
             </div>
-            <div class="tab-content border rounded-3 border-primary p-3 text-danger" id="pills-tabContent">
-              <div class="tab-pane fade show active">
-                <div class="all-wesbite">
-                  <div class="row">
-                    <div
-                      class="col-lg-4"
-                      v-for="(template, index) in filteredTemplates"
-                      :key="index"
-                    >
-                      <div class="card-wrapper">
-                        <div class="img-design">
-                          <img :src="config.CRM_API_URL + '/storage/' + template.featured_image" />
-                        </div>
-                        <div class="button-form">
-                          <button
-                            class="button-design"
-                            :class="{ 'btn-selected': selectedTemplateId === template.id }"
-                            @click="selectTemplate(template.id)"
+            <!-- Step-1 Choose your option End -->
+
+            <!-- Step-2 All template shown with there component Start -->
+            <div v-if="currentStep === 2" class="step step-2">
+              <div class="mb-3">
+                <h3>Start Selecting a Template</h3>
+                  <div class="tabs-design">
+                    <ul class="nav nav-pills mb-3 border-bottom border-2" id="pills-tab" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button
+                          class="nav-link text-primary fw-semibold position-relative"
+                          :class="{ active: selectedCategories.length === 1 && selectedCategories.includes('all') }"
+                          id="pills-all-websites-tab"
+                          data-bs-toggle="pill"
+                          data-bs-target="#pills-all-websites"
+                          type="button"
+                          role="tab"
+                          aria-controls="pills-all-websites"
+                          :aria-selected="selectedCategories.includes('all')"
+                          @click="toggleCategory('all')"
+                        >
+                          All Websites
+                        </button>
+                      </li>
+                      <li
+                        class="nav-item"
+                        role="presentation"
+                        v-for="(category, index) in WebsiteCategories"
+                        :key="category.id"
+                      >
+                        <button
+                          :class="[
+                            'nav-link',
+                            'text-primary',
+                            'fw-semibold',
+                            'position-relative',
+                            { active: selectedCategories.includes(category.name.toLowerCase()) }
+                          ]"
+                          :id="'pills-' + category.name.toLowerCase() + '-tab'"
+                          data-bs-toggle="pill"
+                          :data-bs-target="'#pills-' + category.name.toLowerCase()"
+                          type="button"
+                          role="tab"
+                          :aria-controls="'pills-' + category.name.toLowerCase()"
+                          :aria-selected="selectedCategories.includes(category.name.toLowerCase())"
+                          @click="toggleCategory(category.name.toLowerCase())"
+                          :style="{
+                            'background-color': selectedCategories.includes(category.name.toLowerCase()) ? '#1c2960' : '',
+                            'color': selectedCategories.includes(category.name.toLowerCase()) ? 'white' : ''
+                          }"
+                        >
+                          {{ category.name }}
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="tab-content border rounded-3 border-primary p-3 text-danger" id="pills-tabContent">
+                    <div class="tab-pane fade show active" id="pills-all-websites" role="tabpanel" aria-labelledby="pills-all-websites-tab">
+                      <div class="all-wesbite">
+                        <div class="row" style="width: 69%">
+                          <div
+                            class="col-lg-6"
+                            v-for="(template, index) in filteredTemplates"
+                            :key="index"
                           >
-                            {{ selectedTemplateId === template.id ? 'Selected' : 'Select' }}
-                          </button>
-                          <button class="button-design">Preview</button>
+                          <!-- <i v-if="selectedTemplateId === template.id" class="fa fa-check" aria-hidden="true"></i> -->
+                            <div class="card-wrapper">
+                              <div class="img-design">
+                                <img :src="config.CRM_API_URL + '/storage/' + template.featured_image" />
+                              </div>
+                              <div class="button-form">
+                                <button
+                                  class="btn btn-primary select-template"
+                                  :class="{ 'btn-selected': selectedTemplateId === template.id }"
+                                  @click="selectTemplate(template.id)"
+                                >
+                                  {{ selectedTemplateId === template.id ? 'Selected' : 'Select' }}
+                                </button>
+                                <button class="btn btn-primary preview-template">Preview</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div v-if="selectedComponents.length > 0" style="width: 35%;" class="qqwertt">
+                          <div v-for="(selectedComponent, index) in selectedComponents"
+                          :key="selectedComponent.id">
+                            <img :src="config.CRM_API_URL +'/storage/'+ selectedComponent.component_detail.preview" style="width: 400px;" />
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                  <button
+                    type="button"
+                    class="btn btn-primary prev-step"
+                    @click="prevStep"
+                  >
+                    {{ props.previousText }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-primary next-step"
+                    :disabled="!selectedTemplateId"
+                    @click="nextStep"
+                  >
+                    {{ props.nextText }}
+                  </button>
               </div>
             </div>
-              <button
-                type="button"
-                class="btn btn-primary next-step"
-                @click="nextStep"
-              >
-                {{ props.nextText }}
-              </button>
-              <button
-                type="button"
-                class="btn btn-primary prev-step"
-                @click="prevStep"
-              >
-                {{ props.previousText }}
-              </button>
-          </div>
-        </div>
-        <div v-if="currentStep === 3" class="step step-3">
-            <h3 class="text-center">{{ props.modalTitle }}</h3>
+            <!-- Step-2 All template shown with there component End -->
 
-            <img src="/images/question.png" />
-            <p class="r3 px-md-5 px-sm-1">{{ props.modalText }}</p>
-            <input type="hidden" name="template_id" :value="selectedOptionTemplate === 'selectTemplate' ? selectedTemplateId : ''"/>
-
+            <!-- Step-3 Submit to confirm regenerated with template_id or randomly Start -->
+            <div v-if="currentStep === 3" class="step step-3">
+              <div class="mb-3">
+                <h3 class="text-center">{{ props.modalTitle }}</h3>
+                <img src="/images/question.png" />
+                <p class="r3 px-md-5 px-sm-1 confirm-text">{{ props.modalText }}</p>
+                <br>
+                <input type="hidden" name="template_id" :value="selectedOptionTemplate === 'selectTemplate' ? selectedTemplateId : ''"/>
               <button
                 class="btn btn-primary next-step"
                 data-toggle="modal"
@@ -275,9 +340,13 @@ onMounted(() => {
               >
                 {{ props.previousText }}
               </button>
+            </div>
+            </div>
+            <!-- Step-3 Submit to confirm regenerated with template_id or randomly End -->
           </div>
         </div>
       </div>
     </div>
+  </div>
 </template>
 

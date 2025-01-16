@@ -260,6 +260,7 @@ const getSiteDeatils = async () => {
     });
     if (response.status === 200 && response.data.success) {
       siteSettingsDeatil.value = response.data.settings_detail;
+      console.log("Site Settings Detail:", siteSettingsDeatil.value);
     }
   } catch (error) {
     console.error("An error occurred:", error);
