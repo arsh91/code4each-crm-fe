@@ -150,7 +150,11 @@
             </li>
           </ul>
         </li>
-        <li class="sidebar-list-item">
+        <!-- <li class="sidebar-list-item"
+        v-if="
+            dashboardData?.agency_website_info?.length >= 1 &&
+            dashboardData?.agency_website_info[0].website_id
+          ">
                 <router-link
                   :to="{ name: 'plans' }"
                   class="sidebar-link text-muted"
@@ -159,7 +163,7 @@
                   <i class="fa fa-credit-card me-3"></i>
                   <span class="sidebar-link-title"> Plans</span>
                 </router-link>
-              </li>
+              </li> -->
       </ul>
       <div class="dashboard-design" v-if="currentRoute === '/dashboard'">
         <div class="feedback-btn">
@@ -171,7 +175,7 @@
       <div class="Regenerate" v-else>
         <form class="text-start mb-2 mt-3">
           <div class="form-field mb-4">
-            <button class="btn btn-outline-danger btn-danger " type="button" id="button-addon3" data-toggle="modal" data-target="#myform"><i class="fa fa-retweet" aria-hidden="true"></i><span> Regenerate</span></button>
+            <button class="btn btn-outline-danger btn-danger " type="button" id="button-addon3" data-toggle="modal" data-target="#selectOptionForRegenerate"><i class="fa fa-retweet" aria-hidden="true"></i><span> Regenerate</span></button>
           </div>
         </form>
       </div>

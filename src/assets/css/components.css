@@ -331,7 +331,7 @@ ul#myTab {
     text-align: center;
 }
 div#myModal .modal-dialog {
-    min-width: 800px;
+    min-width: 950px;
 }
 .website-show  a.website-links {
     text-decoration: none;
@@ -730,7 +730,7 @@ form.button-from.mt-2 select.form-select {
     box-shadow: none;
     
 }
-.model-regin .b1 {
+button.btn.btn-primary.w-50.rounded-pill.b1 {
     background-color: #1d2b64;
     box-shadow: 0px 4px #1d2b64;
     border-radius: 8px !important;
@@ -774,9 +774,9 @@ form.button-from.mt-2 select.form-select {
     top: -30px;
   }
   .project-details-popup .modal-header {
-    /* margin: 0; */
-    /* padding: 0; */
     justify-content: center;
+    padding: 30px 0 20px;
+    align-items: center;
 }
   .project-details-popup .modal-header .header-img {
     width: 100%;
@@ -784,8 +784,8 @@ form.button-from.mt-2 select.form-select {
   }
   .modal-content.project-details-popup {
     border: 0;
-    padding: 0px 20px 30px;
-    background-color: #f2f5f9!important;
+    padding: 0 20px 30px 20px;
+    background-color: #f2f5f9 !important;
 }
 .project-details-popup form.text-start.mb-2.mt-3 {
     margin-top: 1rem !important;
@@ -930,12 +930,12 @@ form.button-from.mt-2 select.form-select {
     box-shadow: 2px 2px 2px black;
 }
 
-.model-regin .fa{
+/* .model-regin .fa{
     color: #1d2b64;
     font-size:90px;
     padding: 30px 0px;
     text-align: center;
-}
+} */
 
 .model-regin .b1{
     background-color:#1d2b64;
@@ -1824,7 +1824,7 @@ svg.shape.shapea {
     padding-top: 20px;
     margin-top: 30px;
     padding-bottom: 13px;
-    width: 40%;
+    width: 30%;
 }
 .edit-section1 {
     border-top: 1px dashed #000;
