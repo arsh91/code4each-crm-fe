@@ -3819,5 +3819,12 @@ p.r3.px-md-5.px-sm-1.confirm-text {
     justify-content: center;
     margin: 0px auto;
 }
+.card-wrapper.active:hover {
+    transform: none;
+    border-radius: 0;
+}
+.card-wrapper.active {
+    border-radius: 0;
+}
 
 

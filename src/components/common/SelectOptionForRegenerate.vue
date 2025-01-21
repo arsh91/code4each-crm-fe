@@ -2,6 +2,7 @@
 import { ref, defineProps, computed, defineEmits, onMounted, inject, watch } from "vue";
 import WordpressService from "@/service/WordpressService";
 import config from "/config";
+import { openLinkInNewTab } from "@/util/helper";
 
 const currentStep = ref(1);
 const selectedOptionTemplate = ref("randomlySelectTemplate");
@@ -17,7 +18,8 @@ const props = defineProps({
   confirmText: String,
   nextText: String,
   previousText: String,
-  optionTitle: String
+  optionTitle: String,
+  initialCategory: String
 });
 const emits = defineEmits();
 const confirmSubmit = () => {
@@ -118,7 +120,11 @@ const getTemplateById = (id)=> {
 }
 
 onMounted(() => {
-  selectedCategories.value = ["all"];
+  console.log("props.initialCategory", props.initialCategory);
+  selectedCategories.value = props.initialCategory
+    ? props.initialCategory.split(',').map((cat) => cat.trim().toLowerCase())
+    : ['all'];
+  // selectedCategories.value = ["all"];
   fetchWebsiteTemplates();
   fetchCategories();
   const modal = document.getElementById('selectOptionForRegenerate');
@@ -130,6 +136,9 @@ onMounted(() => {
     selectedComponents.value = []; 
   });
 });
+const previewTemplate = (url) => {
+  openLinkInNewTab(url);
+};
 </script>
 
 <template>
@@ -252,7 +261,7 @@ onMounted(() => {
                           @click="toggleCategory(category.name.toLowerCase())"
                           :style="{
                             'background-color': selectedCategories.includes(category.name.toLowerCase()) ? '#1c2960' : '',
-                            'color': selectedCategories.includes(category.name.toLowerCase()) ? 'white' : ''
+                            'color': selectedCategories.includes(category.name.toLowerCase()) ? 'white !important' : 'inherit' 
                           }"
                         >
                           {{ category.name }}
@@ -270,8 +279,9 @@ onMounted(() => {
                             v-for="(template, index) in filteredTemplates"
                             :key="index"
                           >
-                          <!-- <i v-if="selectedTemplateId === template.id" class="fa fa-check" aria-hidden="true"></i> -->
-                            <div class="card-wrapper">
+                          <div :class="{'Current-layout': selectedTemplateId === template.id}">
+                            <i v-if="selectedTemplateId === template.id" class="fa fa-check" aria-hidden="true"></i>
+                            <div class="card-wrapper" :class="{'active': selectedTemplateId === template.id}">
                               <div class="img-design">
                                 <img :src="config.CRM_API_URL + '/storage/' + template.featured_image" />
                               </div>
@@ -283,10 +293,17 @@ onMounted(() => {
                                 >
                                   {{ selectedTemplateId === template.id ? 'Selected' : 'Select' }}
                                 </button>
-                                <button class="btn btn-primary preview-template">Preview</button>
+                                <button
+                                  class="btn btn-primary preview-template"
+                                  type="button"
+                                  @click="previewTemplate(template.preview_link)"
+                                >
+                                  Preview
+                                </button>
                               </div>
                             </div>
                           </div>
+                        </div>
                         </div>
                         <div v-if="selectedComponents.length > 0" style="width: 35%;" class="qqwertt">
                           <div v-for="(selectedComponent, index) in selectedComponents"

@@ -17,6 +17,7 @@ import { openLinkInNewTab } from "@/util/helper";
 import { EventBus } from "@/EventBus";
 import DeleteModal from "@/components/common/DeleteModal.vue";
 import ConfirmModal from "@/components/common/ConfirmModal.vue";
+import SelectOptionForRegenerate from "@/components/common/SelectOptionForRegenerate.vue";
 import ProcessCompleteModal from "@/components/common/ProcessCompleteModal.vue";
 import AnimationLoader from "@/components/common/AnimationLoader.vue";
 import Loader from "@/components/common/Loader.vue";
@@ -65,6 +66,8 @@ const btnDisable = ref(false);
 const currentTab = ref("image");
 const selectedDeletedImageUrl = ref(null);
 const newActiveFontId = ref(null);
+const templateId = ref(null);
+const selectedCategory = ref("");
 
 const defaultUrls = ref();
 const socialLinksData = ref({
@@ -178,6 +181,10 @@ const getSiteDeatils = async () => {
     });
     if (response.status === 200 && response.data.success) {
       siteSettingsDeatil.value = response.data.settings_detail;
+      const responseCatName = siteSettingsDeatil.value.agency_website_detail.website_category_name;
+      if (responseCatName) {
+        selectedCategory.value = responseCatName.trim();
+      }
     }
   } catch (error) {
     console.error("An error occurred:", error);
@@ -185,11 +192,13 @@ const getSiteDeatils = async () => {
 };
 
 const regenerateWebsite = async () => {
+  templateId.value = id;
   try {
     loading.value = true;
     const response = await WordpressService.regenerateWebsite({
       agency_id: dashboardData.value.user.agency_id,
       website_url: siteSettingsDeatil.value.website_domain,
+      template_id: templateId.value,
     });
     await getSiteDeatils();
     await fetchDashboardData();
@@ -319,9 +328,14 @@ const saveLinkValue = async (key) => {
     </div>
   </div>
   <Loader v-if="loading" />
-  <ConfirmModal
+  <SelectOptionForRegenerate
+    v-if="selectedCategory" 
+    :initialCategory="selectedCategory"
+    optionTitle="Choose an Option"
+    previousText="Previous"
+    nextText="Next"
     modalTitle="Confirm!"
-    modalText="Do you really want to regenrate This will regenrate your site"
+    modalText="Do you really want to regenrate .This will regenrate your site"
     @confirm="regenerateWebsite"
     confirmText="Submit"
   />

@@ -60,6 +60,7 @@ const deleteLoading = ref(false);
 const deleteComponentImageModal = ref(false);
 const positionForAddSection = ref(null);
 const templateId = ref(null);
+const selectedCategory = ref("");
 
 const fetchDashboardData = async () => {
   try {
@@ -260,7 +261,10 @@ const getSiteDeatils = async () => {
     });
     if (response.status === 200 && response.data.success) {
       siteSettingsDeatil.value = response.data.settings_detail;
-      console.log("Site Settings Detail:", siteSettingsDeatil.value);
+      const responseCatName = siteSettingsDeatil.value.agency_website_detail.website_category_name;
+      if (responseCatName) {
+        selectedCategory.value = responseCatName.trim();
+      }
     }
   } catch (error) {
     console.error("An error occurred:", error);
@@ -401,7 +405,6 @@ const handleTabClick = () => {
 };
 
 const regenerateWebsite = async (id) => {
-  console.log("Received template ID:", id);
   templateId.value = id;
   try {
     loading.value = true;
@@ -793,6 +796,8 @@ const showloading = (value)=>{
   </div>
   <DeleteModal @confirm="deleteComponentImage" :loading="deleteLoading" />
   <SelectOptionForRegenerate
+    v-if="selectedCategory" 
+    :initialCategory="selectedCategory"
     optionTitle="Choose an Option"
     previousText="Previous"
     nextText="Next"
