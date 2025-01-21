@@ -14,6 +14,7 @@ import { openLinkInNewTab } from "@/util/helper";
 import { EventBus } from "@/EventBus";
 import DeleteModal from "@/components/common/DeleteModal.vue";
 import ConfirmModal from "@/components/common/ConfirmModal.vue";
+import SelectOptionForRegenerate from "@/components/common/SelectOptionForRegenerate.vue";
 import ProcessCompleteModal from "@/components/common/ProcessCompleteModal.vue";
 import FlashMessage from "@/components/common/FlashMessage.vue";
 import AddNewSection from "./elements/AddNewSection.vue";
@@ -58,6 +59,8 @@ const selectedDeletedImageUrl = ref(null);
 const deleteLoading = ref(false);
 const deleteComponentImageModal = ref(false);
 const positionForAddSection = ref(null);
+const templateId = ref(null);
+const selectedCategory = ref("");
 
 const fetchDashboardData = async () => {
   try {
@@ -258,6 +261,10 @@ const getSiteDeatils = async () => {
     });
     if (response.status === 200 && response.data.success) {
       siteSettingsDeatil.value = response.data.settings_detail;
+      const responseCatName = siteSettingsDeatil.value.agency_website_detail.website_category_name;
+      if (responseCatName) {
+        selectedCategory.value = responseCatName.trim();
+      }
     }
   } catch (error) {
     console.error("An error occurred:", error);
@@ -397,12 +404,14 @@ const handleTabClick = () => {
   loading.value = false;
 };
 
-const regenerateWebsite = async () => {
+const regenerateWebsite = async (id) => {
+  templateId.value = id;
   try {
     loading.value = true;
     const response = await WordpressService.regenerateWebsite({
       agency_id: dashboardData.value.user.agency_id,
       website_url: siteSettingsDeatil.value.website_domain,
+      template_id: templateId.value,
     });
     await getSiteDeatils();
     await fetchDashboardData();
@@ -786,7 +795,12 @@ const showloading = (value)=>{
     <Loader v-if="loading" />
   </div>
   <DeleteModal @confirm="deleteComponentImage" :loading="deleteLoading" />
-  <ConfirmModal
+  <SelectOptionForRegenerate
+    v-if="selectedCategory" 
+    :initialCategory="selectedCategory"
+    optionTitle="Choose an Option"
+    previousText="Previous"
+    nextText="Next"
     modalTitle="Confirm!"
     modalText="Do you really want to regenrate .This will regenrate your site"
     @confirm="regenerateWebsite"

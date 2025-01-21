@@ -243,6 +243,7 @@ const fetchWebsiteTemplates = async () => {
     const response = await WordpressService.getWebsiteTemplates();
     if (response && response.data && response.data.website_templates) {
       templates.value = response.data.website_templates;
+      console.log("template", templates.value)
     } else {
       console.log("No website templates found or unexpected response structure");
     }
@@ -313,13 +314,14 @@ const goToStepOneAndPreview = (url) => {
     currentStep.value = 1; 
     openLinkInNewTab(url); 
 };
+const previewTemplate = (url) => {
+  openLinkInNewTab(url);
+};
 
 // Function to find the template by id
 const getTemplateById = (id)=> {
   return templates.value.find(template => template.id === id);
 }
-
-
 </script>
 <template>
   <div class="modal fade" id="basicModal" tabindex="-1" aria-hidden="true">
@@ -613,24 +615,33 @@ const getTemplateById = (id)=> {
                       <div class="all-wesbite">
                         <div class="row" style="width: 69%">
                           <div class="col-lg-6" v-for="(template, index) in filteredTemplates" :key="index">
-                            <div class="card-wrapper">
+                            <div :class="{'Current-layout': selectedTemplateId === template.id}">
+                              <i v-if="selectedTemplateId === template.id" class="fa fa-check" aria-hidden="true"></i>
+                              <div class="card-wrapper" :class="{'active': selectedTemplateId === template.id}">
                               <div class="img-design">
                                 <img :src="config.CRM_API_URL +'/storage/'+ template.featured_image" />
                               </div>
                               <div class="button-form">
                                 <button
-                                  class="button-design"
+                                  class="btn btn-primary select-template"
                                   type="button"
                                   :class="{ 'btn-selected': selectedTemplateId === template.id }"
                                   @click="selectTemplate(template.id)"
                                 >
                                   {{ selectedTemplateId === template.id ? 'Selected' : 'Select' }}
                                 </button>
-                                <button class="button-design" type="button"> Preview</button>
+                                <button
+                                  class="btn btn-primary preview-template"
+                                  type="button"
+                                  @click="previewTemplate(template.preview_link)"
+                                >
+                                  Preview
+                                </button>
                               </div>
                             </div>
                           </div>
                         </div>
+                      </div>
 
                         <div v-if="selectedComponents.length > 0" style="width: 35%;" class="qqwertt">
                           <div v-for="(selectedComponent, index) in selectedComponents"

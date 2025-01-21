@@ -1147,9 +1147,8 @@ div#modalContactForm .modal-dialog {
     font-size: 40px;
     display: flex;
     justify-content: flex-end;
-    margin: 0px auto;
-    /* width: 40%; */
-    margin-right: 0;
+    margin: 0 0 0 auto;
+    padding-right: 10px;
 }
 
 #create-popup .modal-header {
@@ -2037,10 +2036,9 @@ a.btn.btn-white.button-icon.me-3.mt-1.mb-1 span {
     z-index: -1;
 }
 
-#multi-step-form {
-
+/* #multi-step-form {
     overflow-x: hidden;
-}
+} */
 
 
 #create-popup {
@@ -3759,6 +3757,15 @@ button.button-design1 {
         width: 90%;
     }
 }
+h3#chooseOption {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 35px;
+}
+.mb-3.allTemplates {
+    position: relative;
+    padding: 0rem 1rem;
+}
 
 .all-wesbite {
     display: flex;
@@ -3778,6 +3785,46 @@ button.button-design1 {
     border: 2px solid #1c2961;
     padding: 10px 10px;
     height: fit-content;
+}
+button.btn.btn-primary.select-template {
+    background: #1d2b64;
+    border-radius: 8px;
+    margin-right: 16px;
+    border-color: #1d2b64;
+}
+
+button.btn.btn-primary.select-template:hover {
+    background: transparent;
+    color: #1d2b64;
+}
+
+button.btn.btn-primary.preview-template {
+    background: #1d2b64;
+    border-radius: 8px;
+    margin-right: 16px;
+    border-color: #1d2b64;
+}
+
+button.btn.btn-primary.preview-template:hover {
+    background: transparent;
+    color: #1d2b64;
+}
+p.r3.px-md-5.px-sm-1.confirm-text {
+    color: #1d2b64;
+    font-weight: 700;
+    text-align: center;
+    font-size: 18px;
+    width: 66%;
+    display: flex;
+    justify-content: center;
+    margin: 0px auto;
+}
+.card-wrapper.active:hover {
+    transform: none;
+    border-radius: 0;
+}
+.card-wrapper.active {
+    border-radius: 0;
 }
 
 

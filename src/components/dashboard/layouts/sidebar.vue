@@ -175,7 +175,7 @@
       <div class="Regenerate" v-else>
         <form class="text-start mb-2 mt-3">
           <div class="form-field mb-4">
-            <button class="btn btn-outline-danger btn-danger " type="button" id="button-addon3" data-toggle="modal" data-target="#myform"><i class="fa fa-retweet" aria-hidden="true"></i><span> Regenerate</span></button>
+            <button class="btn btn-outline-danger btn-danger " type="button" id="button-addon3" data-toggle="modal" data-target="#selectOptionForRegenerate"><i class="fa fa-retweet" aria-hidden="true"></i><span> Regenerate</span></button>
           </div>
         </form>
       </div>
