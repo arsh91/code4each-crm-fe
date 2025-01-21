@@ -23,10 +23,14 @@ const props = defineProps({
 });
 const emits = defineEmits();
 const confirmSubmit = () => {
-    selectedOptionTemplate.value = "randomlySelectTemplate";
-    currentStep.value = 1;
-    emits("confirm", selectedTemplateId.value);
+  if (selectedOptionTemplate.value === "randomlySelectTemplate") {
+    selectedTemplateId.value = null;  
+  }
+  selectedOptionTemplate.value = "randomlySelectTemplate";
+  currentStep.value = 1;
+  emits("confirm", selectedTemplateId.value);
 };
+
 
 const prevStep = () => {
   if (selectedOptionTemplate.value === 'randomlySelectTemplate' && currentStep.value == 3) {
@@ -53,10 +57,8 @@ const nextStep = () => {
 const fetchWebsiteTemplates = async () => {
   try {
     const response = await WordpressService.getWebsiteTemplates();
-    console.log("Fetch Website Templates Response:", response);
     if (response && response.data && response.data.website_templates) {
       templates.value = response.data.website_templates;
-      console.log("Templates Data:", templates.value);
     } else {
       console.log("No website templates found or unexpected response structure");
     }
@@ -68,11 +70,8 @@ const fetchWebsiteTemplates = async () => {
 const fetchCategories = async () => {
   try {
     const response = await WordpressService.getCategoryOption();
-    console.log("Fetch Categories Response:", response);
-
     if (response && response.data && response.data.categories) {
       WebsiteCategories.value = response.data.categories;
-      console.log("Website Categories Data:", WebsiteCategories.value);
     } else {
       console.log("No website Categories found or unexpected response structure");
     }
@@ -88,7 +87,6 @@ const filteredTemplates = computed(() => {
   const uniqueTemplates = new Set();
   templates.value.forEach(template => {
     const templateCategories = template.category_id.split(',').map(cat => cat.trim().toLowerCase());
-
     if (selectedCategories.value.some(selectedCategory => templateCategories.includes(selectedCategory.toLowerCase()))) {
       uniqueTemplates.add(template);
     }
@@ -120,14 +118,13 @@ const getTemplateById = (id)=> {
 }
 
 onMounted(() => {
-  console.log("props.initialCategory", props.initialCategory);
   selectedCategories.value = props.initialCategory
     ? props.initialCategory.split(',').map((cat) => cat.trim().toLowerCase())
     : ['all'];
-  // selectedCategories.value = ["all"];
   fetchWebsiteTemplates();
   fetchCategories();
 });
+
 const previewTemplate = (url) => {
   openLinkInNewTab(url);
 };
@@ -150,6 +147,7 @@ const previewTemplate = (url) => {
             class="btn-close"
             data-dismiss="modal"
             aria-label="Close"
+            @click="() => { currentStep = 1; selectedTemplateId = null; selectedOptionTemplate = 'randomlySelectTemplate' }"
           ></button>
         </div>
         <div class="modal-body">
