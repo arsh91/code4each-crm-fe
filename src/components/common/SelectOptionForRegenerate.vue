@@ -23,9 +23,9 @@ const props = defineProps({
 });
 const emits = defineEmits();
 const confirmSubmit = () => {
-  currentStep.value = 1;
-  emits("confirm", selectedTemplateId.value);
-  
+    selectedOptionTemplate.value = "randomlySelectTemplate";
+    currentStep.value = 1;
+    emits("confirm", selectedTemplateId.value);
 };
 
 const prevStep = () => {
@@ -127,14 +127,6 @@ onMounted(() => {
   // selectedCategories.value = ["all"];
   fetchWebsiteTemplates();
   fetchCategories();
-  const modal = document.getElementById('selectOptionForRegenerate');
-  modal.addEventListener('hide.bs.modal', () => {
-    currentStep.value = 1;
-    selectedOptionTemplate.value = "randomlySelectTemplate";
-    selectedCategories.value = ['all']; 
-    selectedTemplateId.value = null; 
-    selectedComponents.value = []; 
-  });
 });
 const previewTemplate = (url) => {
   openLinkInNewTab(url);
